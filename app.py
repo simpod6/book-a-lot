@@ -1,6 +1,7 @@
 from flask import Flask, render_template, request, redirect, url_for, flash, session, jsonify
 from datetime import datetime, timedelta
 import time
+import uuid
 
 app = Flask(__name__)
 app.secret_key = 'supersecretkey'
@@ -47,65 +48,89 @@ def index():
 
 @app.route('/api/reservations')
 def get_reservations():
-    # Return reservations in a format suitable for FullCalendar
-    events = [
-        {'title': f"{res['user_name']} ({res['start_time']} - {res['end_time']})",
-         'start': res['start_time'], 'end': res['end_time']}
-        for res in reservations
-    ]
-    return jsonify(events)
+    return jsonify([
+        {
+            'title': reservation['user'],
+            'start': reservation['start_time'],
+            'end': reservation['end_time']
+        }
+        for reservation in reservations
+    ])
 
-@app.route('/reserve', methods=['POST'])
-def reserve():
+
+
+@app.route('/add_reservation', methods=['POST'])
+def add_reservation():
+    # Ensure the user is logged in
     if 'username' not in session:
-        flash('Please log in to make a reservation.', 'danger')
+        flash('You must be logged in to make a reservation.', 'danger')
         return redirect(url_for('login'))
 
-    user_name = session['username']
-    date = request.form.get('date')
-    start_time = request.form.get('start_time')
-    end_time = request.form.get('end_time')
+    # Fetch data from the form
+    date = request.form['date']
+    start_time = request.form['start_time']
+    duration = int(request.form['duration'])
 
-    if not date or not start_time or not end_time:
-        flash('Date, start time, and end time must all be provided!', 'danger')
-        return redirect(url_for('index'))
+    # Calculate start and end times
+    start_datetime = datetime.strptime(f"{date} {start_time}", "%Y-%m-%d %H:%M")
+    end_datetime = start_datetime + timedelta(minutes=duration)
 
-    start_datetime = f"{date} {start_time}:00"
-    end_datetime = f"{date} {end_time}:00"
+    # Check for overlapping reservations
+    for reservation in reservations:
+        if reservation['date'] == date:
+            existing_start = datetime.strptime(reservation['start_time'], "%Y-%m-%d %H:%M")
+            existing_end = datetime.strptime(reservation['end_time'], "%Y-%m-%d %H:%M")
+            if start_datetime < existing_end and end_datetime > existing_start:
+                flash('Reservation overlaps with an existing one!', 'danger')
+                return redirect(url_for('index'))
 
-    if start_datetime >= end_datetime:
-        flash('End time must be after start time!', 'danger')
-        return redirect(url_for('index'))
+     # Add reservation to the list with a unique ID
+    reservations.append({
+        'id': str(uuid.uuid4()),  # Generate a unique ID for the reservation
+        'date': date,
+        'start_time': start_datetime.strftime("%Y-%m-%d %H:%M"),
+        'end_time': end_datetime.strftime("%Y-%m-%d %H:%M"),
+        'user': session['username']
+    })
 
-    # Check for overlap
-    for res in reservations:
-        if res['start_time'] < end_datetime and res['end_time'] > start_datetime:
-            flash('This time slot is already reserved!', 'danger')
-            return redirect(url_for('index'))
-
-    reservations.append({'user_name': user_name, 'start_time': start_datetime, 'end_time': end_datetime})
-    flash('Reservation successful!', 'success')
+    flash('Reservation successfully added!', 'success')
     return redirect(url_for('index'))
 
-@app.route('/cancel', methods=['POST'])
-def cancel():
+
+@app.route('/cancel_reservation', methods=['GET', 'POST'])
+def cancel_reservation():
+    # Ensure the user is logged in
     if 'username' not in session:
-        flash('Please log in to cancel a reservation.', 'danger')
+        flash('You must be logged in to cancel a reservation.', 'danger')
         return redirect(url_for('login'))
 
-    user_name = session['username']
-    start_time = request.form.get('start_time')
-    end_time = request.form.get('end_time')
+    username = session['username']
 
-    reservation = next((res for res in reservations if res['user_name'] == user_name and
-                        res['start_time'] == start_time and res['end_time'] == end_time), None)
-    if reservation:
-        reservations.remove(reservation)
-        flash('Reservation canceled successfully!', 'success')
-    else:
-        flash('Reservation not found!', 'danger')
+    if request.method == 'POST':
+        reservation_id = request.form.get('reservation_id')
+        
+        # Remove the reservation by ID
+        global reservations
+        reservations = [r for r in reservations if r['id'] != reservation_id]
+        
+        flash('Reservation successfully cancelled!', 'success')
+        return redirect(url_for('index'))
 
-    return redirect(url_for('index'))
+    # Filter and format reservations for the logged-in user
+    user_reservations = []
+    for r in reservations:
+        if r['user'] == username:
+            start_time = datetime.strptime(r['start_time'], "%Y-%m-%d %H:%M")
+            end_time = datetime.strptime(r['end_time'], "%Y-%m-%d %H:%M")
+            duration = int((end_time - start_time).total_seconds() // 60)
+            user_reservations.append({
+                'id': r['id'],
+                'display': f"{r['date']} {start_time.strftime('%H:%M')}–{end_time.strftime('%H:%M')} ({duration} min)"
+            })
+
+    return render_template('cancel_reservation.html', reservations=user_reservations)
+
+
 
 if __name__ == '__main__':
     #app.run(debug=True)

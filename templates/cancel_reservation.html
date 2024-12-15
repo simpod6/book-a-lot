@@ -1,0 +1,25 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cancel Reservation</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+</head>
+<body>
+<div class="container mt-3">
+    <h5 class="text-center">Cancel a Reservation</h5>
+    <form method="POST" action="{{ url_for('cancel_reservation') }}">
+        <div class="mb-3">
+            <label for="reservation-id" class="form-label">Select Reservation to Cancel</label>
+            <select class="form-control" id="reservation-id" name="reservation_id" required>
+                {% for reservation in reservations %}
+                    <option value="{{ reservation.id }}">{{ reservation.display }}</option>
+                {% endfor %}
+            </select>
+        </div>
+        <button type="submit" class="btn btn-danger w-100">Cancel Reservation</button>
+    </form>
+</div>
+</body>
+</html>

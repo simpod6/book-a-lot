@@ -43,81 +43,110 @@
     </div>
 
     <!-- Reservation Form -->
-    <form method="POST" action="{{ url_for('reserve') }}" class="mb-4">
-        <div class="row">
-            <div class="col-md-3">
-                <input type="date" name="date" class="form-control" required>
+    <div class="container mt-3">
+        <h5 class="text-center">Reservation</h5>
+        <div class="card">
+            <div class="card-body">
+
+    <form method="POST" action="{{ url_for('add_reservation') }}" class="needs-validation" novalidate>
+        <div class="row g-2 mb-3">
+            <!-- Date Picker -->
+            <div class="col-6">
+                <label for="reservation-date" class="form-label visually-hidden">Date</label>
+                <input type="date" class="form-control form-control-sm" id="reservation-date" name="date" required>
             </div>
-            <div class="col-md-3">
-                <select name="start_time" class="form-control" required>
-                    <option value="" disabled selected>Start Time</option>
-                    {% for hour in range(0, 24) %}
-                    <option value="{{ '%02d:00'|format(hour) }}">{{ '%2d:00'|format(hour) }}</option>
-                    {% endfor %}
+    
+            <!-- Start Time -->
+            <div class="col-6">
+                <label for="start-time" class="form-label visually-hidden">Start Time</label>
+                <input type="time" class="form-control form-control-sm" id="start-time" name="start_time" step="1800" required>
+            </div>
+        </div>
+    
+        <div class="row g-2 mb-3">
+            <!-- Duration -->
+            <div class="col-12">
+                <label for="duration" class="form-label visually-hidden">Duration</label>
+                <select class="form-control form-control-sm" id="duration" name="duration" required>
+                    <option value="30">30 minutes</option>
+                    <option value="60">1 hour</option>
+                    <option value="90">1 hour 30 minutes</option>
+                    <option value="120">2 hours</option>
+                    <option value="150">2 hours 30 minutes</option>
+                    <option value="180">3 hours</option>
                 </select>
             </div>
-            <div class="col-md-3">
-                <select name="end_time" class="form-control" required>
-                    <option value="" disabled selected>End Time</option>
-                    {% for hour in range(0, 24) %}
-                    <option value="{{ '%02d:00'|format(hour) }}">{{ '%2d:00'|format(hour) }}</option>
-                    {% endfor %}
-                </select>
-            </div>
-            <div class="col-md-3">
-                <button type="submit" class="btn btn-primary">Reserve</button>
-            </div>
+        </div>
+    
+        <!-- Submit Button -->
+        <div class="d-grid gap-2">
+            <button type="submit" class="btn btn-primary btn-sm">Reserve</button>
         </div>
     </form>
 
+</div>
+</div>
+</div>
+    
+    
+
     <!-- Cancellation Form -->
-    <form method="POST" action="{{ url_for('cancel') }}" class="mb-4">
-        <div class="row">
-            <div class="col-md-3">
-                <select name="start_time" class="form-control" required>
-                    <option value="" disabled selected>Start Time</option>
-                    {% for res in reservations if res.user_name == username %}
-                    <option value="{{ res['start_time'] }}">{{ res['start_time'] }}</option>
-                    {% endfor %}
-                </select>
-            </div>
-            <div class="col-md-3">
-                <select name="end_time" class="form-control" required>
-                    <option value="" disabled selected>End Time</option>
-                    {% for res in reservations if res.user_name == username %}
-                    <option value="{{ res['end_time'] }}">{{ res['end_time'] }}</option>
-                    {% endfor %}
-                </select>
-            </div>
-            <div class="col-md-3">
-                <button type="submit" class="btn btn-danger">Cancel Reservation</button>
+    <div class="container mt-3">
+        <h5 class="text-center">Cancel a Reservation</h5>
+        <div class="card">
+            <div class="card-body">
+                <form method="POST" action="{{ url_for('cancel_reservation') }}">
+                    <div class="mb-3">
+                        <label for="reservation-id" class="form-label">Select Reservation to Cancel</label>
+                        <select class="form-control" id="reservation-id" name="reservation_id" required>
+                            {% for reservation in reservations %}
+                                <option value="{{ reservation.id }}">{{ reservation.display }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <button type="submit" class="btn btn-danger w-100">Cancel Reservation</button>
+                </form>                
             </div>
         </div>
-    </form>
+    </div>
+
+
 
     <div id="calendar"></div>
 
-<script>
-    document.addEventListener('DOMContentLoaded', function() {
-        var calendarEl = document.getElementById('calendar');
-
-        var calendar = new FullCalendar.Calendar(calendarEl, {
-            initialView: 'dayGridMonth',
-            events: '/api/reservations',
-            headerToolbar: {
-                left: 'prev,next today',
-                center: 'title',
-                right: 'dayGridMonth,timeGridWeek,timeGridDay'
-            },
-            eventTimeFormat: { // 24-hour time format
-                hour: 'numeric',
-                minute: '2-digit'                
-            }
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            var calendarEl = document.getElementById('calendar');
+    
+            var calendar = new FullCalendar.Calendar(calendarEl, {
+                initialView: 'customThreeDay', // Set the initial view to 3-day
+                headerToolbar: {
+                    left: 'prev,next today',
+                    center: 'title',
+                    right: '' // No extra view buttons needed
+                },
+                views: {
+                    customThreeDay: {
+                        type: 'timeGrid',
+                        duration: { days: 3 }, // Custom 3-day duration
+                        buttonText: '3 days'
+                    }
+                },
+                events: '/api/reservations', // API endpoint for reservations
+                eventTimeFormat: {
+                    hour: '2-digit',
+                    minute: '2-digit',
+                    hour12: false // 24-hour format
+                },
+                height: 'auto', // Adjust height for responsiveness
+                nowIndicator: true // Highlight the current time
+            });
+    
+            calendar.render();
         });
-
-        calendar.render();
-    });
-</script>
+    </script>
+    
+    
 
 </body>
 </html>

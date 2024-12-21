@@ -50,15 +50,15 @@
 
     <form method="POST" action="{{ url_for('add_reservation') }}" class="needs-validation" novalidate>
         <div class="row g-2 mb-3">
-            <!-- Date Picker -->
+            <!-- Date Picker -->            
             <div class="col-6">
-                <label for="reservation-date" class="form-label visually-hidden">Date</label>
+                <label for="reservation-date" class="form-label">Date</label>                
                 <input type="date" class="form-control form-control-sm" id="reservation-date" name="date" required>
             </div>
     
             <!-- Start Time -->
             <div class="col-6">
-                <label for="start-time" class="form-label visually-hidden">Start Time</label>
+                <label for="start-time" class="form-label">Start Time</label>
                 <input type="time" class="form-control form-control-sm" id="start-time" name="start_time" step="1800" required>
             </div>
         </div>
@@ -66,7 +66,7 @@
         <div class="row g-2 mb-3">
             <!-- Duration -->
             <div class="col-12">
-                <label for="duration" class="form-label visually-hidden">Duration</label>
+                <label for="duration" class="form-label">Duration</label>
                 <select class="form-control form-control-sm" id="duration" name="duration" required>
                     <option value="30">30 minutes</option>
                     <option value="60">1 hour</option>
@@ -113,6 +113,7 @@
     </div>
 
 
+<div class="my-5"></div>
 
     <div id="calendar"></div>
 

@@ -84,13 +84,15 @@ def add_reservation():
                 flash('Reservation overlaps with an existing one!', 'danger')
                 return redirect(url_for('index'))
 
+    duration = int((end_datetime - start_datetime).total_seconds() // 60)
      # Add reservation to the list with a unique ID
     reservations.append({
         'id': str(uuid.uuid4()),  # Generate a unique ID for the reservation
         'date': date,
         'start_time': start_datetime.strftime("%Y-%m-%d %H:%M"),
         'end_time': end_datetime.strftime("%Y-%m-%d %H:%M"),
-        'user': session['username']
+        'user': session['username'],
+        'display': f"{date} {start_datetime.strftime('%H:%M')}–{end_datetime.strftime('%H:%M')} ({duration} min)"
     })
 
     flash('Reservation successfully added!', 'success')

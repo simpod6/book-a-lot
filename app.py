@@ -112,8 +112,7 @@ def cancel_reservation():
         reservation_id = request.form.get('reservation_id')
         
         # Remove the reservation by ID
-        global reservations
-        reservations = [r for r in reservations if r['id'] != reservation_id]
+        reservations[:] = [r for r in reservations if r['id'] != reservation_id]
         
         flash('Reservation successfully cancelled!', 'success')
         return redirect(url_for('index'))

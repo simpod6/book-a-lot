@@ -48,7 +48,7 @@ reservations = []
 
 @app.route('/')
 def home():    
-    # db.create_all()
+    db.create_all()
     if 'username' in session:
         return redirect(url_for('index'))
     return redirect(url_for('login'))

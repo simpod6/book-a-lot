@@ -4,14 +4,22 @@ from datetime import datetime, timedelta
 import uuid
 import config
 from werkzeug.security import generate_password_hash, check_password_hash
+import os
 
 app = Flask(__name__)
 app.secret_key = config.APP_SECRET_KEY
 
+# Determine the schema based on the environment
+schema = 'unit_tests' if os.getenv('FLASK_ENV') == 'testing' else 'runtime'
 
 # SQLAlchemy Configuration for PostgreSQL
-app.config['SQLALCHEMY_DATABASE_URI'] = f'postgresql://{config.PGUSER}:{config.PGPASSWORD}@{config.PGHOST}/{config.PGDATABASE}'
+app.config['SQLALCHEMY_DATABASE_URI'] = f'postgresql+psycopg2://{config.PGUSER}:{config.PGPASSWORD}@{config.PGHOST}/{config.PGDATABASE}'
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
+app.config['SQLALCHEMY_ENGINE_OPTIONS'] = {
+    'execution_options': {
+        'schema_translate_map': {None: schema}
+    }
+}
 
 db = SQLAlchemy(app)
 
@@ -40,6 +48,7 @@ reservations = []
 
 @app.route('/')
 def home():    
+    # db.create_all()
     if 'username' in session:
         return redirect(url_for('index'))
     return redirect(url_for('login'))
@@ -204,4 +213,3 @@ def register():
 if __name__ == '__main__':   
     #app.run(debug=True)
     app.run()
-

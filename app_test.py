@@ -164,6 +164,234 @@ class AppTestCase(unittest.TestCase):
             reservation = Reservation.query.filter_by(id=reservation.id).first()
             self.assertIsNone(reservation)
 
+    def test_cancel_reservation_wrong_user(self):
+        reservation_date = '2023-03-16'
+        reservation_time = '10:00'        
+        reservation_duration = '60'
+        
+        
+        test_user_id =  self.create_test_user()
+        self.do_login()
+
+        self.add_reservation(test_user_id, reservation_date, reservation_time, reservation_duration)
+
+        reservation = None
+        with app.app_context():
+            reservation = Reservation.query.filter_by(user_id=test_user_id).first()
+            self.assertIsNotNone(reservation)
+
+        with app.app_context():
+            test_user_2_id = self.create_test_user(username='test_user_2', password='password123')
+            self.do_login(username='test_user_2', password='password123')
+
+            response = self.app.post('/cancel_reservation', data=dict(reservation_id=reservation.id), follow_redirects=True)
+            self.assertEqual(response.status_code, 200)
+            self.assertIn(b'Reservation not found or not authorized.', response.data)
+            
+            # Check that the reservation was not deleted
+            reservation = Reservation.query.filter_by(id=reservation.id).first()
+            self.assertIsNotNone(reservation)
+    
+    def test_cancel_reservation_not_found(self):
+        test_user_id =  self.create_test_user()
+        self.do_login()
+
+        response = self.app.post('/cancel_reservation', data=dict(reservation_id=1), follow_redirects=True)
+        self.assertEqual(response.status_code, 200)
+        self.assertIn(b'Reservation not found or not authorized.', response.data)
+
+    def test_cancel_reservation_not_logged_in(self):
+        response = self.app.post('/cancel_reservation', data=dict(reservation_id=1), follow_redirects=True)
+        self.assertEqual(response.status_code, 200)
+        self.assertIn(b'You must be logged in to cancel a reservation.', response.data)
+
+    def test_add_reservation_not_logged_in(self):
+        response = self.app.post('/add_reservation', data=dict(
+            date='2023-03-16',
+            start_time='10:00',
+            duration='60'
+        ), follow_redirects=True)
+
+        self.assertEqual(response.status_code, 200)
+        self.assertIn(b'You must be logged in to make a reservation.', response.data)
+    
+    def test_multiple_users_add_reservation(self):
+        reservation_date = '2023-03-16'
+        reservation_time = '10:00'
+        reservation_duration = '60'
+
+        reservation_date_2 = '2023-03-17'
+    
+        
+        test_user_id =  self.create_test_user()
+        self.do_login()
+
+        self.add_reservation(test_user_id, reservation_date, reservation_time, reservation_duration)        
+
+        with app.app_context():
+            test_user_2_id = self.create_test_user(username='test_user_2', password='password123')
+            self.do_login(username='test_user_2', password='password123')
+
+            self.add_reservation(test_user_2_id, reservation_date_2, reservation_time, reservation_duration)        
+
+        with app.app_context():
+            reservations = Reservation.query.all()
+            self.assertEqual(len(reservations), 2)
+
+            reservation_1 = reservations[0]
+            reservation_2 = reservations[1]
+
+            self.assertIsNotNone(reservation_1)
+            self.assertIsNotNone(reservation_2)
+
+            start_time = datetime.strptime(f'{reservation_date} {reservation_time}', '%Y-%m-%d %H:%M')
+            end_time = start_time + timedelta(minutes=int(reservation_duration))
+
+            self.assertEqual(reservation_1.start_time, start_time)
+            self.assertEqual(reservation_1.end_time, end_time)
+
+            self.assertEqual(reservation_1.user_id, test_user_id)
+
+            start_time_2 = datetime.strptime(f'{reservation_date_2} {reservation_time}', '%Y-%m-%d %H:%M')
+            end_time_2 = start_time_2 + timedelta(minutes=int(reservation_duration))
+
+            self.assertEqual(reservation_2.start_time, start_time_2)
+            self.assertEqual(reservation_2.end_time, end_time_2)
+
+            self.assertEqual(reservation_2.user_id, test_user_2_id)
+
+    def test_multiple_users_cancel_reservation(self):
+        reservation_date = '2023-03-16'
+        reservation_time = '10:00'
+        reservation_duration = '60'
+
+        reservation_date_2 = '2023-03-17'
+    
+        
+        test_user_id =  self.create_test_user()
+        self.do_login()
+
+        self.add_reservation(test_user_id, reservation_date, reservation_time, reservation_duration)        
+
+        with app.app_context():
+            test_user_2_id = self.create_test_user(username='test_user_2', password='password123')
+            self.do_login(username='test_user_2', password='password123')
+
+            self.add_reservation(test_user_2_id, reservation_date_2, reservation_time, reservation_duration)        
+
+        with app.app_context():
+            reservations = Reservation.query.all()
+            self.assertEqual(len(reservations), 2)
+
+            reservation_1 = reservations[0]
+            reservation_2 = reservations[1]
+
+            self.assertIsNotNone(reservation_1)
+            self.assertIsNotNone(reservation_2)
+
+            start_time = datetime.strptime(f'{reservation_date} {reservation_time}', '%Y-%m-%d %H:%M')
+            end_time = start_time + timedelta(minutes=int(reservation_duration))
+
+            self.assertEqual(reservation_1.start_time, start_time)
+            self.assertEqual(reservation_1.end_time, end_time)
+
+            self.assertEqual(reservation_1.user_id, test_user_id)
+
+            start_time_2 = datetime.strptime(f'{reservation_date_2} {reservation_time}', '%Y-%m-%d %H:%M')
+            end_time_2 = start_time_2 + timedelta(minutes=int(reservation_duration))
+
+            self.assertEqual(reservation_2.start_time, start_time_2)
+            self.assertEqual(reservation_2.end_time, end_time_2)
+
+            self.assertEqual(reservation_2.user_id, test_user_2_id)
+
+            self.do_login()
+
+            response = self.app.post('/cancel_reservation', data=dict(reservation_id=reservation_1.id), follow_redirects=True)
+            self.assertEqual(response.status_code, 200)
+            self.assertIn(b'Reservation successfully cancelled!', response.data)
+
+            reservations = Reservation.query.all()
+            self.assertEqual(len(reservations), 1)
+
+            reservation = reservations[0]
+            self.assertEqual(reservation.id, reservation_2.id)
+            self.assertEqual(reservation.user_id, reservation_2.user_id)
+
+    def test_multiple_users_cancel_reservation_other_user(self):
+        reservation_date = '2023-03-16'
+        reservation_time = '10:00'
+        reservation_duration = '60'
+
+        reservation_date_2 = '2023-03-17'
+    
+        
+        test_user_id =  self.create_test_user()
+        self.do_login()
+
+        self.add_reservation(test_user_id, reservation_date, reservation_time, reservation_duration)        
+
+        with app.app_context():
+            test_user_2_id = self.create_test_user(username='test_user_2', password='password123')
+            self.do_login(username='test_user_2', password='password123')
+
+            self.add_reservation(test_user_2_id, reservation_date_2, reservation_time, reservation_duration)        
+
+        with app.app_context():
+            reservations = Reservation.query.all()
+            self.assertEqual(len(reservations), 2)
+
+            reservation_1 = reservations[0]
+            reservation_2 = reservations[1]
+
+            self.assertIsNotNone(reservation_1)
+            self.assertIsNotNone(reservation_2)
+
+            start_time = datetime.strptime(f'{reservation_date} {reservation_time}', '%Y-%m-%d %H:%M')
+            end_time = start_time + timedelta(minutes=int(reservation_duration))
+
+            self.assertEqual(reservation_1.start_time, start_time)
+            self.assertEqual(reservation_1.end_time, end_time)
+
+            self.assertEqual(reservation_1.user_id, test_user_id)
+
+            start_time_2 = datetime.strptime(f'{reservation_date_2} {reservation_time}', '%Y-%m-%d %H:%M')
+            end_time_2 = start_time_2 + timedelta(minutes=int(reservation_duration))
+
+            self.assertEqual(reservation_2.start_time, start_time_2)
+            self.assertEqual(reservation_2.end_time, end_time_2)
+
+            self.assertEqual(reservation_2.user_id, test_user_2_id)
+
+            self.do_login()
+
+            response = self.app.post('/cancel_reservation', data=dict(reservation_id=reservation_2.id), follow_redirects=True)
+            self.assertEqual(response.status_code, 200)
+            self.assertIn(b'Reservation not found or not authorized.', response.data)
+
+            self.assertEqual(len(reservations), 2)
+
+            reservation_1 = reservations[0]
+            reservation_2 = reservations[1]
+
+            self.assertIsNotNone(reservation_1)
+            self.assertIsNotNone(reservation_2)
+
+            start_time = datetime.strptime(f'{reservation_date} {reservation_time}', '%Y-%m-%d %H:%M')
+            end_time = start_time + timedelta(minutes=int(reservation_duration))
+
+            self.assertEqual(reservation_1.start_time, start_time)
+            self.assertEqual(reservation_1.end_time, end_time)
+
+            self.assertEqual(reservation_1.user_id, test_user_id)
+
+            start_time_2 = datetime.strptime(f'{reservation_date_2} {reservation_time}', '%Y-%m-%d %H:%M')
+            end_time_2 = start_time_2 + timedelta(minutes=int(reservation_duration))
+
+            self.assertEqual(reservation_2.start_time, start_time_2)
+            self.assertEqual(reservation_2.end_time, end_time_2)
+
+            self.assertEqual(reservation_2.user_id, test_user_2_id)
 
 
 if __name__ == '__main__':

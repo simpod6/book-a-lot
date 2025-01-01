@@ -92,7 +92,8 @@ def index():
     # Pass both sets of reservations to the template
     return render_template('index.html', 
                            reservations=reservations, 
-                           user_reservations=user_reservations)
+                           user_reservations=user_reservations,
+                           username=session['username'])
 
 @app.route('/api/reservations')
 def get_reservations():

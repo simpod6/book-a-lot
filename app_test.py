@@ -50,16 +50,16 @@ class AppTestCase(unittest.TestCase):
         self.assertEqual(response.status_code, 200)
         self.assertIn(b'Invalid username or password', response.data)
 
-    def create_test_user(self):
+    def create_test_user(self, username='test_user', password='password123'):
         with app.app_context():
-            test_user = User(username='test_user', password=generate_password_hash('password123'))
+            test_user = User(username=username, password=generate_password_hash(password))
             db.session.add(test_user)
             db.session.commit()
 
             return test_user.id
     
-    def do_login(self):
-        response = self.app.post('/login', data=dict(username='test_user', password='password123'), follow_redirects=True)
+    def do_login(self, username='test_user', password='password123'):
+        response = self.app.post('/login', data=dict(username=username, password=password), follow_redirects=True)
         self.assertEqual(response.status_code, 200)
         self.assertIn(b'Login successful!', response.data)
         with self.app.session_transaction() as sess:
@@ -74,13 +74,25 @@ class AppTestCase(unittest.TestCase):
         with self.app.session_transaction() as sess:
             self.assertNotIn('username', sess)
     
-    def add_reservation(self, reservation_date, reservation_time, reservation_duration):        
+    def add_reservation(self, user_id, reservation_date, reservation_time, reservation_duration, skipChecks=False):
 
         response = self.app.post('/add_reservation', data=dict(
             date=reservation_date,
             start_time=reservation_time,
             duration=reservation_duration
         ), follow_redirects=True)
+
+        if not skipChecks:
+            self.assertEqual(response.status_code, 200)
+            with app.app_context():
+                reservation = Reservation.query.filter_by(user_id=user_id).first()
+                self.assertIsNotNone(reservation)
+
+                start_time = datetime.strptime(f'{reservation_date} {reservation_time}', '%Y-%m-%d %H:%M')
+                end_time = start_time + timedelta(minutes=int(reservation_duration))
+
+                self.assertEqual(reservation.start_time, start_time)
+                self.assertEqual(reservation.end_time, end_time)
 
         return response
 
@@ -93,19 +105,7 @@ class AppTestCase(unittest.TestCase):
         test_user_id =  self.create_test_user()
         self.do_login()
 
-        response = self.add_reservation(reservation_date, reservation_time, reservation_duration)        
-
-        self.assertEqual(response.status_code, 200)
-        with app.app_context():
-            reservation = Reservation.query.filter_by(user_id=test_user_id).first()
-            self.assertIsNotNone(reservation)
-
-            start_time = datetime.strptime(f'{reservation_date} {reservation_time}', '%Y-%m-%d %H:%M')
-            end_time = start_time + timedelta(minutes=int(reservation_duration))
-
-            self.assertEqual(reservation.start_time, start_time)
-            self.assertEqual(reservation.end_time, end_time)
-
+        self.add_reservation(test_user_id, reservation_date, reservation_time, reservation_duration)        
 
 
     def test_add_reservation_overlap(self):
@@ -118,20 +118,9 @@ class AppTestCase(unittest.TestCase):
         test_user_id =  self.create_test_user()
         self.do_login()
 
-        response = self.add_reservation(reservation_date, reservation_time, reservation_duration)        
-
-        self.assertEqual(response.status_code, 200)
-        with app.app_context():
-            reservation = Reservation.query.filter_by(user_id=test_user_id).first()
-            self.assertIsNotNone(reservation)
-
-            start_time = datetime.strptime(f'{reservation_date} {reservation_time}', '%Y-%m-%d %H:%M')
-            end_time = start_time + timedelta(minutes=int(reservation_duration))
-
-            self.assertEqual(reservation.start_time, start_time)
-            self.assertEqual(reservation.end_time, end_time)
+        self.add_reservation(test_user_id, reservation_date, reservation_time, reservation_duration)                
         
-        response = self.add_reservation(reservation_date, reservation_time_2, reservation_duration)        
+        response = self.add_reservation(test_user_id, reservation_date, reservation_time_2, reservation_duration, skipChecks=True)        
         
         self.assertEqual(response.status_code, 200)
         self.assertIn(b'Reservation overlaps with an existing one!', response.data)
@@ -153,24 +142,17 @@ class AppTestCase(unittest.TestCase):
         reservation_date = '2023-03-16'
         reservation_time = '10:00'        
         reservation_duration = '60'
-        reservation = None
+        
         
         test_user_id =  self.create_test_user()
         self.do_login()
 
-        response = self.add_reservation(reservation_date, reservation_time, reservation_duration)        
+        self.add_reservation(test_user_id, reservation_date, reservation_time, reservation_duration)
 
-        self.assertEqual(response.status_code, 200)
+        reservation = None
         with app.app_context():
             reservation = Reservation.query.filter_by(user_id=test_user_id).first()
             self.assertIsNotNone(reservation)
-
-            start_time = datetime.strptime(f'{reservation_date} {reservation_time}', '%Y-%m-%d %H:%M')
-            end_time = start_time + timedelta(minutes=int(reservation_duration))
-
-            self.assertEqual(reservation.start_time, start_time)
-            self.assertEqual(reservation.end_time, end_time)
-
 
         response = self.app.post('/cancel_reservation', data=dict(reservation_id=reservation.id), follow_redirects=True)
         self.assertEqual(response.status_code, 200)

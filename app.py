@@ -1,19 +1,27 @@
 from flask import Flask, render_template, request, redirect, url_for, flash, session, jsonify
 from flask_sqlalchemy import SQLAlchemy
 from datetime import datetime, timedelta
-import uuid
 import config
 from werkzeug.security import generate_password_hash, check_password_hash
 import os
 
+
+# read the parameters from the environment or use the default values from the config file
+APP_SECRET_KEY = os.getenv("APP_SECRET_KEY", config.APP_SECRET_KEY)
+PGHOST = os.getenv("PGHOST", config.PGHOST)
+PGUSER = os.getenv("PGUSER", config.PGUSER)
+PGDATABASE = os.getenv("PGDATABASE", config.PGDATABASE)
+PGPASSWORD = os.getenv("PGPASSWORD", config.PGPASSWORD)
+
+
 app = Flask(__name__)
-app.secret_key = config.APP_SECRET_KEY
+app.secret_key = APP_SECRET_KEY
 
 # Determine the schema based on the environment
 schema = 'unit_tests' if os.getenv('FLASK_ENV') == 'testing' else 'runtime'
 
 # SQLAlchemy Configuration for PostgreSQL
-app.config['SQLALCHEMY_DATABASE_URI'] = f'postgresql+psycopg2://{config.PGUSER}:{config.PGPASSWORD}@{config.PGHOST}/{config.PGDATABASE}'
+app.config['SQLALCHEMY_DATABASE_URI'] = f'postgresql+psycopg2://{PGUSER}:{PGPASSWORD}@{PGHOST}/{PGDATABASE}'
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 app.config['SQLALCHEMY_ENGINE_OPTIONS'] = {
     'execution_options': {

@@ -1,17 +1,18 @@
 from flask import Flask, render_template, request, redirect, url_for, flash, session, jsonify
 from flask_sqlalchemy import SQLAlchemy
 from datetime import datetime, timedelta
-import config
 from werkzeug.security import generate_password_hash, check_password_hash
 import os
+from dotenv import load_dotenv
 
 
-# read the parameters from the environment or use the default values from the config file
-APP_SECRET_KEY = os.getenv("APP_SECRET_KEY", config.APP_SECRET_KEY)
-PGHOST = os.getenv("PGHOST", config.PGHOST)
-PGUSER = os.getenv("PGUSER", config.PGUSER)
-PGDATABASE = os.getenv("PGDATABASE", config.PGDATABASE)
-PGPASSWORD = os.getenv("PGPASSWORD", config.PGPASSWORD)
+load_dotenv()
+
+APP_SECRET_KEY = os.getenv("APP_SECRET_KEY")
+PGHOST = os.getenv("PGHOST")
+PGUSER = os.getenv("PGUSER")
+PGDATABASE = os.getenv("PGDATABASE")
+PGPASSWORD = os.getenv("PGPASSWORD")
 
 
 app = Flask(__name__)

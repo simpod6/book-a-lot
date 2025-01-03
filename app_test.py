@@ -31,6 +31,13 @@ class AppTestCase(unittest.TestCase):
         response = self.app.get('/')
         self.assertEqual(response.status_code, 302)
         self.assertIn('/login', response.location)
+    
+    def test_home_redirects_to_index(self):
+        with self.app.session_transaction() as sess:
+            sess['username'] = 'test_user'
+        response = self.app.get('/')
+        self.assertEqual(response.status_code, 302)
+        self.assertIn('/index', response.location)
 
     def test_login_page_loads(self):
         response = self.app.get('/login')
@@ -73,6 +80,11 @@ class AppTestCase(unittest.TestCase):
         self.assertIn(b'You have been logged out.', response.data)
         with self.app.session_transaction() as sess:
             self.assertNotIn('username', sess)
+    
+    def test_index_not_logged_in(self):
+        response = self.app.get('/index')
+        self.assertEqual(response.status_code, 302)
+        self.assertIn('/login', response.location)
     
     def add_reservation(self, user_id, reservation_date, reservation_time, reservation_duration, skipChecks=False):
 
@@ -392,6 +404,85 @@ class AppTestCase(unittest.TestCase):
             self.assertEqual(reservation_2.end_time, end_time_2)
 
             self.assertEqual(reservation_2.user_id, test_user_2_id)
+    
+    # tests for api/reservations
+    def test_reservations_api(self):
+        reservation_date = '2023-03-16'
+        reservation_time = '10:00'
+        reservation_duration = '60'
+
+        reservation_date_2 = '2023-03-17'
+    
+        
+        test_user_id =  self.create_test_user()
+        self.do_login()
+
+        self.add_reservation(test_user_id, reservation_date, reservation_time, reservation_duration)        
+
+        with app.app_context():
+            test_user_2_id = self.create_test_user(username='test_user_2', password='password123')
+            self.do_login(username='test_user_2', password='password123')
+
+            self.add_reservation(test_user_2_id, reservation_date_2, reservation_time, reservation_duration)        
+
+        response = self.app.get('/api/reservations', follow_redirects=True)
+        self.assertEqual(response.status_code, 200)
+        # parse the json response
+        reservations = response.get_json()
+        self.assertEqual(len(reservations), 2)
+        self.assertEqual(reservations[0]['title'], 'test_user')
+        self.assertEqual(reservations[1]['title'], 'test_user_2')
+
+        start_time_1 = datetime.strptime(f"{reservation_date} {reservation_time}", "%Y-%m-%d %H:%M")
+        end_time_1 = start_time_1 + timedelta(minutes=int(reservation_duration))
+
+        start_time_2 = datetime.strptime(f"{reservation_date_2} {reservation_time}", "%Y-%m-%d %H:%M")
+        end_time_2 = start_time_2 + timedelta(minutes=int(reservation_duration))
+
+        self.assertEqual(reservations[0]['start'], start_time_1.isoformat())
+        self.assertEqual(reservations[1]['start'], start_time_2.isoformat())
+
+        self.assertEqual(reservations[0]['end'], end_time_1.isoformat())
+        self.assertEqual(reservations[1]['end'], end_time_2.isoformat())
+        
+    def test_reservations_api_not_logged_in(self):
+        response = self.app.get('/api/reservations', follow_redirects=True)
+        self.assertEqual(response.status_code, 200)
+        self.assertIn(b'You must be logged in to view reservations.', response.data)
+    
+    def test_reservations_api_no_reservations(self):
+        test_user_id =  self.create_test_user()
+        self.do_login()
+
+        response = self.app.get('/api/reservations', follow_redirects=True)
+        self.assertEqual(response.status_code, 200)
+        self.assertIn(b'[]', response.data)
+    
+    def test_register_page_loads(self):
+        response = self.app.get('/register')
+        self.assertEqual(response.status_code, 200)
+        self.assertIn(b'Register', response.data)
+    
+    def test_register_user(self):
+        response = self.app.post('/register', data=dict(username='test_user', password='password123', confirm_password='password123'), follow_redirects=True)
+        self.assertEqual(response.status_code, 200)
+        self.assertIn(b'Registration successful! Please log in.', response.data)
+        with app.app_context():
+            user = User.query.filter_by(username='test_user').first()
+            self.assertIsNotNone(user)
+        
+        self.do_login()
+    
+    def test_register_user_password_mismatch(self):
+        response = self.app.post('/register', data=dict(username='test_user', password='password123', confirm_password='password1234'), follow_redirects=True)
+        self.assertEqual(response.status_code, 200)
+        self.assertIn(b'Passwords do not match!', response.data)
+    
+    def test_register_user_already_exists(self):
+        self.create_test_user()
+        response = self.app.post('/register', data=dict(username='test_user', password='password123', confirm_password='password123'), follow_redirects=True)
+        self.assertEqual(response.status_code, 200)
+        self.assertIn(b'Username already exists!', response.data)
 
 
 if __name__ == '__main__':

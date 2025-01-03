@@ -97,6 +97,10 @@ def index():
 
 @app.route('/api/reservations')
 def get_reservations():
+    if 'username' not in session:
+        flash('You must be logged in to view reservations.', 'danger')
+        return redirect(url_for('login'))
+    
     reservations = Reservation.query.join(User).all()
     return jsonify([
         {
@@ -147,7 +151,7 @@ def add_reservation():
     return redirect(url_for('index'))
 
 
-@app.route('/cancel_reservation', methods=['GET', 'POST'])
+@app.route('/cancel_reservation', methods=['POST'])
 def cancel_reservation():
     # Ensure the user is logged in
     if 'username' not in session:
@@ -156,31 +160,20 @@ def cancel_reservation():
 
     user_id = session['user_id']
 
-    if request.method == 'POST':
-        reservation_id = request.form.get('reservation_id')
 
-        reservation = Reservation.query.filter_by(id=reservation_id, user_id=user_id).first()
-        
-        
-        if reservation:
-            db.session.delete(reservation)
-            db.session.commit()
-            flash('Reservation successfully cancelled!', 'success')
-        else:
-            flash('Reservation not found or not authorized.', 'danger')
+    reservation_id = request.form.get('reservation_id')
 
-        return redirect(url_for('index'))
-
-    user_reservations = Reservation.query.filter_by(user_id=user_id).all()
-    formatted_reservations = [
-        {
-            'id': r.id,
-            'display': f"{r.start_time.strftime('%Y-%m-%d %H:%M')} to {r.end_time.strftime('%H:%M')}"
-        }
-        for r in user_reservations
-    ]
+    reservation = Reservation.query.filter_by(id=reservation_id, user_id=user_id).first()
     
-    return render_template('cancel_reservation.html', reservations=user_reservations)
+    
+    if reservation:
+        db.session.delete(reservation)
+        db.session.commit()
+        flash('Reservation successfully cancelled!', 'success')
+    else:
+        flash('Reservation not found or not authorized.', 'danger')
+
+    return redirect(url_for('index'))
 
 @app.route('/register', methods=['GET', 'POST'])
 def register():

@@ -43,16 +43,16 @@
     </script>
 
 <div class="container mt-4">
-    <h1 class="mb-4 text-center">book-a-lot</h1>
-    <h3 class="mb-4 text-center">Parking Space Reservation</h3>
+    <h1 class="mb-4 text-center">{{ strings['book-a-lot'] }}</h1>
+    <h3 class="mb-4 text-center">{{ strings['parking_space_reservation'] }}</h3>
     <div class="mb-3">
-        <p>Logged in as: <strong>{{ username }}</strong></p>
+        <p>{{ strings['logged_in_as'] }}: <strong>{{ username }}</strong></p>
         <a href="{{ url_for('logout') }}" class="btn btn-danger">Logout</a>
     </div>
 
     <!-- Reservation Form -->
     <div class="container mt-3">
-        <h5 class="text-center">Reservation</h5>
+        <h5 class="text-center">{{ strings['reservation'] }}</h5>
         <div class="card">
             <div class="card-body">
 
@@ -60,13 +60,13 @@
         <div class="row g-2 mb-3">
             <!-- Date Picker -->            
             <div class="col-6">
-                <label for="reservation-date" class="form-label">Date</label>                
+                <label for="reservation-date" class="form-label">{{ strings['date'] }}</label>                
                 <input type="date" class="form-control form-control-sm" id="reservation-date" name="date" required>
             </div>
     
             <!-- Start Time -->
             <div class="col-6">
-                <label for="start-time" class="form-label">Start Time</label>
+                <label for="start-time" class="form-label">{{ strings['start_time'] }}</label>
                 <input type="time" class="form-control form-control-sm" id="start-time" name="start_time" step="1800" required>
             </div>
         </div>
@@ -74,21 +74,21 @@
         <div class="row g-2 mb-3">
             <!-- Duration -->
             <div class="col-12">
-                <label for="duration" class="form-label">Duration</label>
+                <label for="duration" class="form-label">{{ strings['duration'] }}</label>
                 <select class="form-control form-control-sm" id="duration" name="duration" required>
-                    <option value="30">30 minutes</option>
-                    <option value="60">1 hour</option>
-                    <option value="90">1 hour 30 minutes</option>
-                    <option value="120">2 hours</option>
-                    <option value="150">2 hours 30 minutes</option>
-                    <option value="180">3 hours</option>
+                    <option value="30">{{ strings['30_minutes'] }}</option>
+                    <option value="60">{{ strings['1_hour'] }}</option>
+                    <option value="90">{{ strings['1_hour_30_minutes'] }}</option>
+                    <option value="120">{{ strings['2_hours'] }}</option>
+                    <option value="150">{{ strings['2_hours_30_minutes'] }}</option>
+                    <option value="180">{{ strings['3_hours'] }}</option>
                 </select>
             </div>
         </div>
     
         <!-- Submit Button -->
         <div class="d-grid gap-2">
-            <button type="submit" class="btn btn-primary btn-sm">Reserve</button>
+            <button type="submit" class="btn btn-primary btn-sm">{{ strings['reserve'] }}</button>
         </div>
     </form>
 
@@ -100,14 +100,14 @@
 
     <!-- Cancellation Form -->
     <div class="container mt-3">
-        <h5 class="text-center">Cancel a Reservation</h5>
+        <h5 class="text-center">{{ strings['cancel_a_reservation'] }}</h5>
         <div class="card">
             <div class="card-body">
                 <form method="POST" action="{{ url_for('cancel_reservation') }}">
                     <div class="mb-3">
-                        <label for="reservation-id" class="form-label">Select Reservation to Cancel</label>
+                        <label for="reservation-id" class="form-label">{{ strings['select_reservation_to_cancel'] }}</label>
                         <select class="form-control" id="reservation-id" name="reservation_id" required>                            
-                            <option value="" disabled selected>Select a reservation to cancel</option>
+                            <option value="" disabled selected>{{ strings['select_reservation_to_cancel'] }}</option>
                             {% for reservation in user_reservations|sort(attribute='start_time') %}
                                 <option value="{{ reservation.id }}">
                                     {{ reservation.start_time.strftime('[%Y-%m-%d] %H:%M') }} - {{ reservation.end_time.strftime('%H:%M') }}
@@ -115,7 +115,7 @@
                             {% endfor %}
                         </select>
                     </div>
-                    <button type="submit" class="btn btn-danger w-100">Cancel Reservation</button>
+                    <button type="submit" class="btn btn-danger w-100">{{ strings['cancel_reservation'] }}</button>
                 </form>                
             </div>
         </div>
@@ -162,7 +162,7 @@
 
     <footer class="footer mt-5">
         <div class="container text-center">
-            <span class="text-muted">book-a-lot v1.0 - <a href="https://github.com/simpod6">Simone Podico</a></span>
+            <span class="text-muted">{{ strings['book-a-lot'] }} v1.0 - <a href="https://github.com/simpod6">Simone Podico</a></span>
         </div>
     </footer>
     

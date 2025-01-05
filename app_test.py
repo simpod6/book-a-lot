@@ -8,6 +8,9 @@ os.environ['FLASK_ENV'] = 'testing'
 
 from app import app, db, User, Reservation
 from datetime import datetime, timedelta
+import json
+
+LANGUAGE = os.getenv("LANGUAGE")
 
 
 class AppTestCase(unittest.TestCase):
@@ -16,6 +19,8 @@ class AppTestCase(unittest.TestCase):
         os.environ['FLASK_ENV'] = 'testing'
         self.app = app.test_client()
         self.app.testing = True
+
+        self.strings = self.load_language()        
 
         # Create the database schema
         with app.app_context():
@@ -26,6 +31,10 @@ class AppTestCase(unittest.TestCase):
         with app.app_context():
             db.session.remove()
             db.drop_all()
+    
+    def load_language(self):
+        with open(f'{LANGUAGE}.json') as f:
+            return json.load(f)
 
     def test_home_redirects_to_login(self):
         response = self.app.get('/')
@@ -60,7 +69,7 @@ class AppTestCase(unittest.TestCase):
 
         response = self.app.post('/login', data=dict(username='wrong_user', password='wrong_password'), follow_redirects=True)
         self.assertEqual(response.status_code, 200)
-        self.assertIn(b'Invalid username or password', response.data)
+        self.assertIn(bytes(self.strings['invalid_username_or_password'],'utf-8'), response.data)
 
     def create_test_user(self, username='testuser', password='password123'):
         with app.app_context():
@@ -73,7 +82,7 @@ class AppTestCase(unittest.TestCase):
     def do_login(self, username='testuser', password='password123'):
         response = self.app.post('/login', data=dict(username=username, password=password), follow_redirects=True)
         self.assertEqual(response.status_code, 200)
-        self.assertIn(b'Login successful!', response.data)
+        self.assertIn(bytes(self.strings['login_successful'],'utf-8'), response.data)
         with self.app.session_transaction() as sess:
             self.assertIn('username', sess)
 
@@ -82,7 +91,7 @@ class AppTestCase(unittest.TestCase):
             sess['username'] = 'testuser'
         response = self.app.get('/logout', follow_redirects=True)
         self.assertEqual(response.status_code, 200)
-        self.assertIn(b'You have been logged out.', response.data)
+        self.assertIn(bytes(self.strings['you_have_been_logged_out'],'utf-8'), response.data)
         with self.app.session_transaction() as sess:
             self.assertNotIn('username', sess)
     
@@ -140,7 +149,7 @@ class AppTestCase(unittest.TestCase):
         response = self.add_reservation(test_user_id, reservation_date, reservation_time_2, reservation_duration, skipChecks=True)        
         
         self.assertEqual(response.status_code, 200)
-        self.assertIn(b'Reservation overlaps with an existing one!', response.data)
+        self.assertIn(bytes(self.strings['reservation_overlaps_with_an_existing_one'],'utf-8'), response.data)
         with app.app_context():
             reservations = Reservation.query.filter_by(user_id=test_user_id)
             self.assertEqual(reservations.count(), 1)
@@ -173,7 +182,7 @@ class AppTestCase(unittest.TestCase):
 
         response = self.app.post('/cancel_reservation', data=dict(reservation_id=reservation.id), follow_redirects=True)
         self.assertEqual(response.status_code, 200)
-        self.assertIn(b'Reservation successfully cancelled!', response.data)
+        self.assertIn(bytes(self.strings['reservation_successfully_cancelled'],'utf-8'), response.data)
         
 
         # Check that the reservation was deleted
@@ -203,7 +212,7 @@ class AppTestCase(unittest.TestCase):
 
             response = self.app.post('/cancel_reservation', data=dict(reservation_id=reservation.id), follow_redirects=True)
             self.assertEqual(response.status_code, 200)
-            self.assertIn(b'Reservation not found or not authorized.', response.data)
+            self.assertIn(bytes(self.strings['reservation_not_found_or_not_authorized'],'utf-8'), response.data)
             
             # Check that the reservation was not deleted
             reservation = Reservation.query.filter_by(id=reservation.id).first()
@@ -215,12 +224,12 @@ class AppTestCase(unittest.TestCase):
 
         response = self.app.post('/cancel_reservation', data=dict(reservation_id=1), follow_redirects=True)
         self.assertEqual(response.status_code, 200)
-        self.assertIn(b'Reservation not found or not authorized.', response.data)
+        self.assertIn(bytes(self.strings['reservation_not_found_or_not_authorized'],'utf-8'), response.data)
 
     def test_cancel_reservation_not_logged_in(self):
         response = self.app.post('/cancel_reservation', data=dict(reservation_id=1), follow_redirects=True)
         self.assertEqual(response.status_code, 200)
-        self.assertIn(b'You must be logged in to cancel a reservation.', response.data)
+        self.assertIn(bytes(self.strings['you_must_be_logged_in_to_cancel_a_reservation'],'utf-8'), response.data)
 
     def test_add_reservation_not_logged_in(self):
         response = self.app.post('/add_reservation', data=dict(
@@ -230,7 +239,7 @@ class AppTestCase(unittest.TestCase):
         ), follow_redirects=True)
 
         self.assertEqual(response.status_code, 200)
-        self.assertIn(b'You must be logged in to make a reservation.', response.data)
+        self.assertIn(bytes(self.strings['you_must_be_logged_in_to_make_a_reservation'],'utf-8'), response.data)
     
     def test_multiple_users_add_reservation(self):
         reservation_date = datetime.now().strftime('%Y-%m-%d')
@@ -327,7 +336,7 @@ class AppTestCase(unittest.TestCase):
 
             response = self.app.post('/cancel_reservation', data=dict(reservation_id=reservation_1.id), follow_redirects=True)
             self.assertEqual(response.status_code, 200)
-            self.assertIn(b'Reservation successfully cancelled!', response.data)
+            self.assertIn(bytes(self.strings['reservation_successfully_cancelled'],'utf-8'), response.data)
 
             reservations = Reservation.query.all()
             self.assertEqual(len(reservations), 1)
@@ -385,7 +394,7 @@ class AppTestCase(unittest.TestCase):
 
             response = self.app.post('/cancel_reservation', data=dict(reservation_id=reservation_2.id), follow_redirects=True)
             self.assertEqual(response.status_code, 200)
-            self.assertIn(b'Reservation not found or not authorized.', response.data)
+            self.assertIn(bytes(self.strings['reservation_not_found_or_not_authorized'],'utf-8'), response.data)
 
             self.assertEqual(len(reservations), 2)
 
@@ -454,7 +463,7 @@ class AppTestCase(unittest.TestCase):
     def test_reservations_api_not_logged_in(self):
         response = self.app.get('/api/reservations', follow_redirects=True)
         self.assertEqual(response.status_code, 200)
-        self.assertIn(b'You must be logged in to view reservations.', response.data)
+        self.assertIn(bytes(self.strings['you_must_be_logged_in_to_view_reservations'],'utf-8'), response.data)
     
     def test_reservations_api_no_reservations(self):
         test_user_id =  self.create_test_user()
@@ -472,7 +481,7 @@ class AppTestCase(unittest.TestCase):
     def test_register_user(self):
         response = self.app.post('/register', data=dict(username='testuser', password='password123', confirm_password='password123'), follow_redirects=True)
         self.assertEqual(response.status_code, 200)
-        self.assertIn(b'Registration successful! Please log in.', response.data)
+        self.assertIn(bytes(self.strings['registration_successful_please_log_in'],'utf-8'), response.data)
         with app.app_context():
             user = User.query.filter_by(username='testuser').first()
             self.assertIsNotNone(user)
@@ -482,7 +491,7 @@ class AppTestCase(unittest.TestCase):
     def test_register_user_with_numeric_chars(self):
         response = self.app.post('/register', data=dict(username='testuser2', password='password123', confirm_password='password123'), follow_redirects=True)
         self.assertEqual(response.status_code, 200)
-        self.assertIn(b'Registration successful! Please log in.', response.data)
+        self.assertIn(bytes(self.strings['registration_successful_please_log_in'],'utf-8'), response.data)
         with app.app_context():
             user = User.query.filter_by(username='testuser2').first()
             self.assertIsNotNone(user)
@@ -492,7 +501,7 @@ class AppTestCase(unittest.TestCase):
     def test_register_user_with_different_case_username(self):
         response = self.app.post('/register', data=dict(username='TestUser', password='password123', confirm_password='password123'), follow_redirects=True)
         self.assertEqual(response.status_code, 200)
-        self.assertIn(b'Registration successful! Please log in.', response.data)
+        self.assertIn(bytes(self.strings['registration_successful_please_log_in'],'utf-8'), response.data)
         with app.app_context():
             user = User.query.filter_by(username='testuser').first()
             self.assertIsNotNone(user)
@@ -502,18 +511,18 @@ class AppTestCase(unittest.TestCase):
     def test_register_user_password_mismatch(self):
         response = self.app.post('/register', data=dict(username='testuser', password='password123', confirm_password='password1234'), follow_redirects=True)
         self.assertEqual(response.status_code, 200)
-        self.assertIn(b'Passwords do not match!', response.data)
+        self.assertIn(bytes(self.strings['passwords_do_not_match'],'utf-8'), response.data)
     
     def test_register_user_already_exists(self):
         self.create_test_user()
         response = self.app.post('/register', data=dict(username='testuser', password='password123', confirm_password='password123'), follow_redirects=True)
         self.assertEqual(response.status_code, 200)
-        self.assertIn(b'Username already exists!', response.data)
+        self.assertIn(bytes(self.strings['username_already_exists'],'utf-8'), response.data)
     
     def test_register_user_invalid_username(self):
         response = self.app.post('/register', data=dict(username='testuser@abc.com', password='password123', confirm_password='password123'), follow_redirects=True)
         self.assertEqual(response.status_code, 200)
-        self.assertIn(b'Username must contain only alphanumeric characters!', response.data)
+        self.assertIn(bytes(self.strings['username_must_contain_only_alphanumeric_characters'],'utf-8'), response.data)
 
     def test_reservations_older_than_1_week_are_deleted(self):
 

@@ -4,6 +4,7 @@ from datetime import datetime, timedelta
 from werkzeug.security import generate_password_hash, check_password_hash
 import os
 from dotenv import load_dotenv
+import json
 
 
 load_dotenv()
@@ -13,6 +14,7 @@ PGHOST = os.getenv("PGHOST")
 PGUSER = os.getenv("PGUSER")
 PGDATABASE = os.getenv("PGDATABASE")
 PGPASSWORD = os.getenv("PGPASSWORD")
+LANGUAGE = os.getenv("LANGUAGE")
 
 
 app = Flask(__name__)
@@ -46,6 +48,9 @@ class Reservation(db.Model):
     end_time = db.Column(db.DateTime, nullable=False)
     user = db.relationship('User', backref='reservations')
 
+def load_language():
+    with open(f'{LANGUAGE}.json') as f:
+        return json.load(f)
 
 @app.route('/')
 def home():    
@@ -55,7 +60,9 @@ def home():
     return redirect(url_for('login'))
 
 @app.route('/login', methods=['GET', 'POST'])
-def login():
+def login():    
+    strings = load_language()
+
     if request.method == 'POST':
         username = request.form.get('username')
         password = request.form.get('password')
@@ -65,23 +72,27 @@ def login():
         if user and check_password_hash(user.password, password):
             session['username'] = username
             session['user_id'] = user.id
-            flash('Login successful!', 'success')
+            flash(strings['login_successful'], 'success')
             return redirect(url_for('index'))
         
-        flash('Invalid username or password!', 'danger')        
-    return render_template('login.html')
+        flash(strings['invalid_username_or_password'], 'danger')        
+    return render_template('login.html', strings=strings)
 
 @app.route('/logout')
-def logout():
+def logout():    
+    strings = load_language()
+
     session.pop('username', None)
     session.pop('user_id', None)
-    flash('You have been logged out.', 'success')
+    flash(strings['you_have_been_logged_out'], 'success')
     return redirect(url_for('login'))
 
 @app.route('/index')
-def index():
+def index():    
+    strings = load_language()
+
     if 'username' not in session:
-        flash('Please log in to access the system.', 'danger')
+        flash(strings['please_log_in_to_access_the_system'], 'danger')
         return redirect(url_for('login'))
     
     # Delete past reservations older than 1 week
@@ -101,12 +112,15 @@ def index():
     return render_template('index.html', 
                            reservations=reservations, 
                            user_reservations=user_reservations,
-                           username=session['username'])
+                           username=session['username'],
+                           strings=strings)
 
 @app.route('/api/reservations')
 def get_reservations():
+    strings = load_language()
+
     if 'username' not in session:
-        flash('You must be logged in to view reservations.', 'danger')
+        flash(strings['you_must_be_logged_in_to_view_reservations'], 'danger')
         return redirect(url_for('login'))
     
     reservations = Reservation.query.join(User).all()
@@ -121,10 +135,12 @@ def get_reservations():
 
 
 @app.route('/add_reservation', methods=['POST'])
-def add_reservation():
+def add_reservation():    
+    strings = load_language()
+
     # Ensure the user is logged in
     if 'username' not in session:
-        flash('You must be logged in to make a reservation.', 'danger')
+        flash(strings['you_must_be_logged_in_to_make_a_reservation'], 'danger')
         return redirect(url_for('login'))
 
     # Fetch data from the form
@@ -143,7 +159,7 @@ def add_reservation():
     ).first()
 
     if overlapping:
-        flash('Reservation overlaps with an existing one!', 'danger')
+        flash(strings['reservation_overlaps_with_an_existing_one'], 'danger')
         return redirect(url_for('index'))
     
     # Add the reservation
@@ -155,15 +171,17 @@ def add_reservation():
     db.session.add(reservation)
     db.session.commit()
 
-    flash('Reservation successfully added!', 'success')
+    flash(strings['reservation_successfully_added'], 'success')
     return redirect(url_for('index'))
 
 
 @app.route('/cancel_reservation', methods=['POST'])
-def cancel_reservation():
+def cancel_reservation():    
+    strings = load_language()
+
     # Ensure the user is logged in
     if 'username' not in session:
-        flash('You must be logged in to cancel a reservation.', 'danger')
+        flash(strings['you_must_be_logged_in_to_cancel_a_reservation'], 'danger')
         return redirect(url_for('login'))
 
     user_id = session['user_id']
@@ -177,30 +195,32 @@ def cancel_reservation():
     if reservation:
         db.session.delete(reservation)
         db.session.commit()
-        flash('Reservation successfully cancelled!', 'success')
+        flash(strings['reservation_successfully_cancelled'], 'success')
     else:
-        flash('Reservation not found or not authorized.', 'danger')
+        flash(strings['reservation_not_found_or_not_authorized'], 'danger')
 
     return redirect(url_for('index'))
 
 @app.route('/register', methods=['GET', 'POST'])
-def register():
+def register():    
+    strings = load_language()
+
     if request.method == 'POST':
         username = request.form['username']
         password = request.form['password']
         confirm_password = request.form['confirm_password']
 
         if password != confirm_password:
-            flash('Passwords do not match!', 'danger')
+            flash(strings['passwords_do_not_match'], 'danger')
             return redirect(url_for('register'))
         
         if not username.isalnum():
-            flash('Username must contain only alphanumeric characters!', 'danger')
+            flash(strings['username_must_contain_only_alphanumeric_characters'], 'danger')
             return redirect(url_for('register'))
         
         existing_user = User.query.filter(db.func.lower(User.username) == db.func.lower(username)).first()        
         if existing_user:
-            flash('Username already exists!', 'danger')
+            flash(strings['username_already_exists'], 'danger')
             return redirect(url_for('register'))
 
         hashed_password = generate_password_hash(password)
@@ -208,10 +228,10 @@ def register():
         db.session.add(user)
         db.session.commit()
 
-        flash('Registration successful! Please log in.', 'success')
+        flash(strings['registration_successful_please_log_in'], 'success')
         return redirect(url_for('login'))
-
-    return render_template('register.html')
+    
+    return render_template('register.html', strings=strings)
 
 
 

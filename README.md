@@ -11,7 +11,8 @@ This is a web-based reservation system built with Flask. It allows users to crea
 
 ## TODO
 
-- Translation
+- fix empty selections on new reservation
+- fix accent carachter in Italian in the registration page
 
 ## Installation
 

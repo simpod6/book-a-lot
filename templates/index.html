@@ -106,9 +106,9 @@
                 <form method="POST" action="{{ url_for('cancel_reservation') }}">
                     <div class="mb-3">
                         <label for="reservation-id" class="form-label">Select Reservation to Cancel</label>
-                        <select class="form-control" id="reservation-id" name="reservation_id" required>
+                        <select class="form-control" id="reservation-id" name="reservation_id" required>                            
                             <option value="" disabled selected>Select a reservation to cancel</option>
-                            {% for reservation in user_reservations  %}                            
+                            {% for reservation in user_reservations|sort(attribute='start_time') %}
                                 <option value="{{ reservation.id }}">
                                     {{ reservation.start_time.strftime('[%Y-%m-%d] %H:%M') }} - {{ reservation.end_time.strftime('%H:%M') }}
                                 </option>

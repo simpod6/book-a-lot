@@ -9,6 +9,15 @@ This is a web-based reservation system built with Flask. It allows users to crea
 - Cancel reservations
 - Flash messages for user feedback
 
+## TODO
+
+- Empty selection by default
+- Time window 8-22
+- Translation
+- Automatic delete after 1w
+- Username not email (filter non alphabetic chars)
+- Version number in GUI
+
 ## Installation
 
 1. Clone the repository:

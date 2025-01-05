@@ -47,14 +47,6 @@ class Reservation(db.Model):
     user = db.relationship('User', backref='reservations')
 
 
-# In-memory databases
-users = {
-    "test_user": "password123",  # username: password
-    "Simone": "simone",  # username: password
-    "Cri": "cri",  # username: password
-}
-reservations = []
-
 @app.route('/')
 def home():    
     db.create_all()
@@ -68,7 +60,7 @@ def login():
         username = request.form.get('username')
         password = request.form.get('password')
 
-        user = User.query.filter_by(username=username).first()
+        user = User.query.filter(db.func.lower(User.username) == db.func.lower(username)).first()
 
         if user and check_password_hash(user.password, password):
             session['username'] = username
@@ -195,13 +187,13 @@ def register():
             flash('Passwords do not match!', 'danger')
             return redirect(url_for('register'))
 
-        existing_user = User.query.filter_by(username=username).first()
+        existing_user = User.query.filter(db.func.lower(User.username) == db.func.lower(username)).first()        
         if existing_user:
             flash('Username already exists!', 'danger')
             return redirect(url_for('register'))
 
         hashed_password = generate_password_hash(password)
-        user = User(username=username, password=hashed_password)
+        user = User(username=db.func.lower(username), password=hashed_password)
         db.session.add(user)
         db.session.commit()
 

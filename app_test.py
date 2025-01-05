@@ -50,6 +50,11 @@ class AppTestCase(unittest.TestCase):
 
         self.do_login()
 
+    def test_successful_login_with_different_case_username(self):        
+        self.create_test_user(username='test_user', password='password123')
+        self.do_login(username='Test_User', password='password123')        
+
+
     def test_unsuccessful_login(self):
         self.create_test_user()
 
@@ -465,6 +470,16 @@ class AppTestCase(unittest.TestCase):
     
     def test_register_user(self):
         response = self.app.post('/register', data=dict(username='test_user', password='password123', confirm_password='password123'), follow_redirects=True)
+        self.assertEqual(response.status_code, 200)
+        self.assertIn(b'Registration successful! Please log in.', response.data)
+        with app.app_context():
+            user = User.query.filter_by(username='test_user').first()
+            self.assertIsNotNone(user)
+        
+        self.do_login()
+    
+    def test_register_user_with_different_case_username(self):
+        response = self.app.post('/register', data=dict(username='Test_User', password='password123', confirm_password='password123'), follow_redirects=True)
         self.assertEqual(response.status_code, 200)
         self.assertIn(b'Registration successful! Please log in.', response.data)
         with app.app_context():

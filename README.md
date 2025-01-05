@@ -16,7 +16,6 @@ This is a web-based reservation system built with Flask. It allows users to crea
 - Translation
 - Automatic delete after 1w
 - Username not email (filter non alphabetic chars)
-- Version number in GUI
 
 ## Installation
 

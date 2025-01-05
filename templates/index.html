@@ -151,7 +151,9 @@
                     hour12: false // 24-hour format
                 },
                 height: 'auto', // Adjust height for responsiveness
-                nowIndicator: true // Highlight the current time
+                nowIndicator: true, // Highlight the current time
+                slotMinTime: '08:00:00', // Start time window at 8 AM
+                slotMaxTime: '23:00:00' // End time window at 10 PM
             });
     
             calendar.render();

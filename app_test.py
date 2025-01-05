@@ -34,7 +34,7 @@ class AppTestCase(unittest.TestCase):
     
     def test_home_redirects_to_index(self):
         with self.app.session_transaction() as sess:
-            sess['username'] = 'test_user'
+            sess['username'] = 'testuser'
         response = self.app.get('/')
         self.assertEqual(response.status_code, 302)
         self.assertIn('/index', response.location)
@@ -51,8 +51,8 @@ class AppTestCase(unittest.TestCase):
         self.do_login()
 
     def test_successful_login_with_different_case_username(self):        
-        self.create_test_user(username='test_user', password='password123')
-        self.do_login(username='Test_User', password='password123')        
+        self.create_test_user(username='testuser', password='password123')
+        self.do_login(username='TestUser', password='password123')        
 
 
     def test_unsuccessful_login(self):
@@ -62,7 +62,7 @@ class AppTestCase(unittest.TestCase):
         self.assertEqual(response.status_code, 200)
         self.assertIn(b'Invalid username or password', response.data)
 
-    def create_test_user(self, username='test_user', password='password123'):
+    def create_test_user(self, username='testuser', password='password123'):
         with app.app_context():
             test_user = User(username=username, password=generate_password_hash(password))
             db.session.add(test_user)
@@ -70,7 +70,7 @@ class AppTestCase(unittest.TestCase):
 
             return test_user.id
     
-    def do_login(self, username='test_user', password='password123'):
+    def do_login(self, username='testuser', password='password123'):
         response = self.app.post('/login', data=dict(username=username, password=password), follow_redirects=True)
         self.assertEqual(response.status_code, 200)
         self.assertIn(b'Login successful!', response.data)
@@ -79,7 +79,7 @@ class AppTestCase(unittest.TestCase):
 
     def test_logout(self):
         with self.app.session_transaction() as sess:
-            sess['username'] = 'test_user'
+            sess['username'] = 'testuser'
         response = self.app.get('/logout', follow_redirects=True)
         self.assertEqual(response.status_code, 200)
         self.assertIn(b'You have been logged out.', response.data)
@@ -198,8 +198,8 @@ class AppTestCase(unittest.TestCase):
             self.assertIsNotNone(reservation)
 
         with app.app_context():
-            test_user_2_id = self.create_test_user(username='test_user_2', password='password123')
-            self.do_login(username='test_user_2', password='password123')
+            test_user_2_id = self.create_test_user(username='testuser2', password='password123')
+            self.do_login(username='testuser2', password='password123')
 
             response = self.app.post('/cancel_reservation', data=dict(reservation_id=reservation.id), follow_redirects=True)
             self.assertEqual(response.status_code, 200)
@@ -246,8 +246,8 @@ class AppTestCase(unittest.TestCase):
         self.add_reservation(test_user_id, reservation_date, reservation_time, reservation_duration)        
 
         with app.app_context():
-            test_user_2_id = self.create_test_user(username='test_user_2', password='password123')
-            self.do_login(username='test_user_2', password='password123')
+            test_user_2_id = self.create_test_user(username='testuser2', password='password123')
+            self.do_login(username='testuser2', password='password123')
 
             self.add_reservation(test_user_2_id, reservation_date_2, reservation_time, reservation_duration)        
 
@@ -291,8 +291,8 @@ class AppTestCase(unittest.TestCase):
         self.add_reservation(test_user_id, reservation_date, reservation_time, reservation_duration)        
 
         with app.app_context():
-            test_user_2_id = self.create_test_user(username='test_user_2', password='password123')
-            self.do_login(username='test_user_2', password='password123')
+            test_user_2_id = self.create_test_user(username='testuser2', password='password123')
+            self.do_login(username='testuser2', password='password123')
 
             self.add_reservation(test_user_2_id, reservation_date_2, reservation_time, reservation_duration)        
 
@@ -349,8 +349,8 @@ class AppTestCase(unittest.TestCase):
         self.add_reservation(test_user_id, reservation_date, reservation_time, reservation_duration)        
 
         with app.app_context():
-            test_user_2_id = self.create_test_user(username='test_user_2', password='password123')
-            self.do_login(username='test_user_2', password='password123')
+            test_user_2_id = self.create_test_user(username='testuser2', password='password123')
+            self.do_login(username='testuser2', password='password123')
 
             self.add_reservation(test_user_2_id, reservation_date_2, reservation_time, reservation_duration)        
 
@@ -425,8 +425,8 @@ class AppTestCase(unittest.TestCase):
         self.add_reservation(test_user_id, reservation_date, reservation_time, reservation_duration)        
 
         with app.app_context():
-            test_user_2_id = self.create_test_user(username='test_user_2', password='password123')
-            self.do_login(username='test_user_2', password='password123')
+            test_user_2_id = self.create_test_user(username='testuser2', password='password123')
+            self.do_login(username='testuser2', password='password123')
 
             self.add_reservation(test_user_2_id, reservation_date_2, reservation_time, reservation_duration)        
 
@@ -435,8 +435,8 @@ class AppTestCase(unittest.TestCase):
         # parse the json response
         reservations = response.get_json()
         self.assertEqual(len(reservations), 2)
-        self.assertEqual(reservations[0]['title'], 'test_user')
-        self.assertEqual(reservations[1]['title'], 'test_user_2')
+        self.assertEqual(reservations[0]['title'], 'testuser')
+        self.assertEqual(reservations[1]['title'], 'testuser2')
 
         start_time_1 = datetime.strptime(f"{reservation_date} {reservation_time}", "%Y-%m-%d %H:%M")
         end_time_1 = start_time_1 + timedelta(minutes=int(reservation_duration))
@@ -469,35 +469,50 @@ class AppTestCase(unittest.TestCase):
         self.assertIn(b'Register', response.data)
     
     def test_register_user(self):
-        response = self.app.post('/register', data=dict(username='test_user', password='password123', confirm_password='password123'), follow_redirects=True)
+        response = self.app.post('/register', data=dict(username='testuser', password='password123', confirm_password='password123'), follow_redirects=True)
         self.assertEqual(response.status_code, 200)
         self.assertIn(b'Registration successful! Please log in.', response.data)
         with app.app_context():
-            user = User.query.filter_by(username='test_user').first()
+            user = User.query.filter_by(username='testuser').first()
             self.assertIsNotNone(user)
         
         self.do_login()
+
+    def test_register_user_with_numeric_chars(self):
+        response = self.app.post('/register', data=dict(username='testuser2', password='password123', confirm_password='password123'), follow_redirects=True)
+        self.assertEqual(response.status_code, 200)
+        self.assertIn(b'Registration successful! Please log in.', response.data)
+        with app.app_context():
+            user = User.query.filter_by(username='testuser2').first()
+            self.assertIsNotNone(user)
+        
+        self.do_login(username='testuser2', password='password123')
     
     def test_register_user_with_different_case_username(self):
-        response = self.app.post('/register', data=dict(username='Test_User', password='password123', confirm_password='password123'), follow_redirects=True)
+        response = self.app.post('/register', data=dict(username='TestUser', password='password123', confirm_password='password123'), follow_redirects=True)
         self.assertEqual(response.status_code, 200)
         self.assertIn(b'Registration successful! Please log in.', response.data)
         with app.app_context():
-            user = User.query.filter_by(username='test_user').first()
+            user = User.query.filter_by(username='testuser').first()
             self.assertIsNotNone(user)
         
-        self.do_login()
+        self.do_login()        
     
     def test_register_user_password_mismatch(self):
-        response = self.app.post('/register', data=dict(username='test_user', password='password123', confirm_password='password1234'), follow_redirects=True)
+        response = self.app.post('/register', data=dict(username='testuser', password='password123', confirm_password='password1234'), follow_redirects=True)
         self.assertEqual(response.status_code, 200)
         self.assertIn(b'Passwords do not match!', response.data)
     
     def test_register_user_already_exists(self):
         self.create_test_user()
-        response = self.app.post('/register', data=dict(username='test_user', password='password123', confirm_password='password123'), follow_redirects=True)
+        response = self.app.post('/register', data=dict(username='testuser', password='password123', confirm_password='password123'), follow_redirects=True)
         self.assertEqual(response.status_code, 200)
         self.assertIn(b'Username already exists!', response.data)
+    
+    def test_register_user_invalid_username(self):
+        response = self.app.post('/register', data=dict(username='testuser@abc.com', password='password123', confirm_password='password123'), follow_redirects=True)
+        self.assertEqual(response.status_code, 200)
+        self.assertIn(b'Username must contain only alphanumeric characters!', response.data)
 
 
 if __name__ == '__main__':

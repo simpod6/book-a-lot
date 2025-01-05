@@ -186,7 +186,11 @@ def register():
         if password != confirm_password:
             flash('Passwords do not match!', 'danger')
             return redirect(url_for('register'))
-
+        
+        if not username.isalnum():
+            flash('Username must contain only alphanumeric characters!', 'danger')
+            return redirect(url_for('register'))
+        
         existing_user = User.query.filter(db.func.lower(User.username) == db.func.lower(username)).first()        
         if existing_user:
             flash('Username already exists!', 'danger')

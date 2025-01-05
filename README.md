@@ -15,7 +15,6 @@ This is a web-based reservation system built with Flask. It allows users to crea
 - Time window 8-22
 - Translation
 - Automatic delete after 1w
-- Username not email (filter non alphabetic chars)
 
 ## Installation
 

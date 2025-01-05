@@ -84,6 +84,13 @@ def index():
         flash('Please log in to access the system.', 'danger')
         return redirect(url_for('login'))
     
+    # Delete past reservations older than 1 week
+    one_week_ago = datetime.now() - timedelta(weeks=1)
+    past_reservations = Reservation.query.filter(Reservation.end_time < one_week_ago).all()
+    for reservation in past_reservations:
+        db.session.delete(reservation)
+    db.session.commit()
+    
      # Fetch all reservations for the calendar
     reservations = Reservation.query.join(User).all()
 

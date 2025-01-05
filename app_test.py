@@ -115,7 +115,7 @@ class AppTestCase(unittest.TestCase):
 
     def test_add_reservation(self):
 
-        reservation_date = '2023-03-16'
+        reservation_date = datetime.now().strftime('%Y-%m-%d')
         reservation_time = '10:00'
         reservation_duration = '60'
         
@@ -127,7 +127,7 @@ class AppTestCase(unittest.TestCase):
 
     def test_add_reservation_overlap(self):
 
-        reservation_date = '2023-03-16'
+        reservation_date = datetime.now().strftime('%Y-%m-%d')
         reservation_time = '10:00'
         reservation_time_2 = '10:30'
         reservation_duration = '60'
@@ -156,7 +156,7 @@ class AppTestCase(unittest.TestCase):
 
 
     def test_cancel_reservation(self):
-        reservation_date = '2023-03-16'
+        reservation_date = datetime.now().strftime('%Y-%m-%d')
         reservation_time = '10:00'        
         reservation_duration = '60'
         
@@ -182,7 +182,7 @@ class AppTestCase(unittest.TestCase):
             self.assertIsNone(reservation)
 
     def test_cancel_reservation_wrong_user(self):
-        reservation_date = '2023-03-16'
+        reservation_date = datetime.now().strftime('%Y-%m-%d')
         reservation_time = '10:00'        
         reservation_duration = '60'
         
@@ -224,7 +224,7 @@ class AppTestCase(unittest.TestCase):
 
     def test_add_reservation_not_logged_in(self):
         response = self.app.post('/add_reservation', data=dict(
-            date='2023-03-16',
+            date=datetime.now().strftime('%Y-%m-%d'),
             start_time='10:00',
             duration='60'
         ), follow_redirects=True)
@@ -233,11 +233,12 @@ class AppTestCase(unittest.TestCase):
         self.assertIn(b'You must be logged in to make a reservation.', response.data)
     
     def test_multiple_users_add_reservation(self):
-        reservation_date = '2023-03-16'
+        reservation_date = datetime.now().strftime('%Y-%m-%d')
         reservation_time = '10:00'
         reservation_duration = '60'
 
-        reservation_date_2 = '2023-03-17'
+        reservation_date_2 = (datetime.now() + timedelta(days=1)).strftime('%Y-%m-%d')
+        
     
         
         test_user_id =  self.create_test_user()
@@ -278,11 +279,11 @@ class AppTestCase(unittest.TestCase):
             self.assertEqual(reservation_2.user_id, test_user_2_id)
 
     def test_multiple_users_cancel_reservation(self):
-        reservation_date = '2023-03-16'
+        reservation_date = datetime.now().strftime('%Y-%m-%d')
         reservation_time = '10:00'
         reservation_duration = '60'
 
-        reservation_date_2 = '2023-03-17'
+        reservation_date_2 = (datetime.now() + timedelta(days=1)).strftime('%Y-%m-%d')
     
         
         test_user_id =  self.create_test_user()
@@ -336,11 +337,11 @@ class AppTestCase(unittest.TestCase):
             self.assertEqual(reservation.user_id, reservation_2.user_id)
 
     def test_multiple_users_cancel_reservation_other_user(self):
-        reservation_date = '2023-03-16'
+        reservation_date = datetime.now().strftime('%Y-%m-%d')
         reservation_time = '10:00'
         reservation_duration = '60'
 
-        reservation_date_2 = '2023-03-17'
+        reservation_date_2 = (datetime.now() + timedelta(days=1)).strftime('%Y-%m-%d')
     
         
         test_user_id =  self.create_test_user()
@@ -412,11 +413,11 @@ class AppTestCase(unittest.TestCase):
     
     # tests for api/reservations
     def test_reservations_api(self):
-        reservation_date = '2023-03-16'
+        reservation_date = datetime.now().strftime('%Y-%m-%d')
         reservation_time = '10:00'
         reservation_duration = '60'
 
-        reservation_date_2 = '2023-03-17'
+        reservation_date_2 = (datetime.now() + timedelta(days=1)).strftime('%Y-%m-%d')
     
         
         test_user_id =  self.create_test_user()
@@ -513,6 +514,36 @@ class AppTestCase(unittest.TestCase):
         response = self.app.post('/register', data=dict(username='testuser@abc.com', password='password123', confirm_password='password123'), follow_redirects=True)
         self.assertEqual(response.status_code, 200)
         self.assertIn(b'Username must contain only alphanumeric characters!', response.data)
+
+    def test_reservations_older_than_1_week_are_deleted(self):
+
+        reservation_date = datetime.now().strftime('%Y-%m-%d')
+        reservation_time = '10:00'
+        reservation_time_2 = '10:30'
+        reservation_duration = '60'
+
+        reservation_date_past = (datetime.now() - timedelta(days=8)).strftime('%Y-%m-%d')
+        
+        test_user_id =  self.create_test_user()
+        self.do_login()
+
+        self.add_reservation(test_user_id, reservation_date, reservation_time, reservation_duration)                
+        
+        response = self.add_reservation(test_user_id, reservation_date_past, reservation_time_2, reservation_duration, skipChecks=True)        
+        
+        self.assertEqual(response.status_code, 200)
+        with app.app_context():
+            reservations = Reservation.query.filter_by(user_id=test_user_id)
+            self.assertEqual(reservations.count(), 1)
+
+            reservation = reservations.first()
+            self.assertIsNotNone(reservation)
+
+            start_time = datetime.strptime(f'{reservation_date} {reservation_time}', '%Y-%m-%d %H:%M')
+            end_time = start_time + timedelta(minutes=int(reservation_duration))
+
+            self.assertEqual(reservation.start_time, start_time)
+            self.assertEqual(reservation.end_time, end_time)
 
 
 if __name__ == '__main__':

@@ -11,7 +11,6 @@ This is a web-based reservation system built with Flask. It allows users to crea
 
 ## TODO
 
-- Empty selection by default
 - Time window 8-22
 - Translation
 - Automatic delete after 1w

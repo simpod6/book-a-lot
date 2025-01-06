@@ -11,7 +11,8 @@ This is a web-based reservation system built with Flask. It allows users to crea
 
 ## TODO
 
-- nothing else it seems!
+- localize calendar
+- better feedback instead of alert on reservation with empty selections
 
 ## Installation
 

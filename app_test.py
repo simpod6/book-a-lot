@@ -33,7 +33,7 @@ class AppTestCase(unittest.TestCase):
             db.drop_all()
     
     def load_language(self):
-        with open(f'{LANGUAGE}.json') as f:
+        with open(f'{LANGUAGE}.json', encoding='utf-8') as f:
             return json.load(f)
 
     def test_home_redirects_to_login(self):

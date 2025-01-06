@@ -49,7 +49,7 @@ class Reservation(db.Model):
     user = db.relationship('User', backref='reservations')
 
 def load_language():
-    with open(f'{LANGUAGE}.json') as f:
+    with open(f'{LANGUAGE}.json', encoding='utf-8') as f:
         return json.load(f)
 
 @app.route('/')

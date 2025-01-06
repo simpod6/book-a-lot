@@ -17,6 +17,7 @@
     "cancel_a_reservation": "Annulla una Prenotazione",
     "select_reservation_to_cancel": "Seleziona Prenotazione da Annullare",
     "cancel_reservation": "Annulla Prenotazione",
+    "please_fill_out_all_fields_of_the_reservation": "Per favore compila tutti i campi della prenotazione.",
     
     "### register.html ###": "----------------------------------------------------------",
     "register": "Registrati",

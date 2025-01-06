@@ -17,6 +17,7 @@
     "cancel_a_reservation": "Cancel a Reservation",
     "select_reservation_to_cancel": "Select Reservation to Cancel",
     "cancel_reservation": "Cancel Reservation",
+    "please_fill_out_all_fields_of_the_reservation": "Please fill out all fields of the reservation.",
 
     "### register.html ###": "----------------------------------------------------------",
     "register": "Register",

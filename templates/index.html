@@ -40,6 +40,17 @@
                 setTimeout(() => alert.remove(), 150); // Remove from DOM after fade-out
             });
         }, 2000); // 2-second delay
+    function validateForm() {
+        const date = document.getElementById('reservation-date').value;
+        const startTime = document.getElementById('start-time').value;
+        const duration = document.getElementById('duration').value;
+    
+        if (!date || !startTime || !duration) {
+            alert("{{ strings['please_fill_out_all_fields_of_the_reservation'] }}");
+            return false;
+        }
+        return true;
+    }
     </script>
 
 <div class="container mt-4">
@@ -87,8 +98,8 @@
         </div>
     
         <!-- Submit Button -->
-        <div class="d-grid gap-2">
-            <button type="submit" class="btn btn-primary btn-sm">{{ strings['reserve'] }}</button>
+        <div class="d-grid gap-2">            
+            <button type="submit" class="btn btn-primary btn-sm" onclick="return validateForm()">{{ strings['reserve'] }}</button>
         </div>
     </form>
 

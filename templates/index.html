@@ -142,6 +142,8 @@
             var calendarEl = document.getElementById('calendar');
     
             var calendar = new FullCalendar.Calendar(calendarEl, {
+                locale: "{{ strings['language'] }}", // Set the locale to Italian
+                allDaySlot: false, // Hide the all-day slot
                 initialView: 'customThreeDay', // Set the initial view to 3-day
                 headerToolbar: {
                     left: 'prev,next today',

@@ -60,7 +60,10 @@
     </script>
 
 <div class="container mt-4">
-    <h1 class="mb-4 text-center">{{ strings['book-a-lot'] }}</h1>
+    <div class="text-center">
+        <img src="{{ url_for('static', filename='logo.png') }}" alt="Logo" class="img-fluid" style="max-width: 80px;">
+    </div>
+    <h1 class="mb-4 text-center">{{ strings['book-a-lot'] }}</h1>    
     <h3 class="mb-4 text-center">{{ strings['parking_space_reservation'] }}</h3>
     <div class="mb-3">
         <p>{{ strings['logged_in_as'] }}: <strong>{{ username }}</strong></p>

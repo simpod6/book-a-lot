@@ -11,7 +11,7 @@ This is a web-based reservation system built with Flask. It allows users to crea
 
 ## TODO
 
-- better feedback instead of alert on reservation with empty selections
+All done.
 
 ## Installation
 

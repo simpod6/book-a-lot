@@ -54,31 +54,27 @@ All done.
 
 ## Usage
 
-1. Run the application:
+1. Set the desired environment variables. Check [.env-sample](.env-sample)
+
+
+
+2. Run the application:
 
     ```sh
     flask run
     ```
 
-2. Open your web browser and go to `http://127.0.0.1:5000/`.
+3. Open your web browser and go to `http://127.0.0.1:5000/`.
 
 ## Routes
 
-- `/register` - Register a new user
+- `/` - Home page
 - `/login` - Login for existing users
 - `/logout` - Logout the current user
-- `/` - Home page
+- `/register` - Register a new user
 - `/reserve` - Create a new reservation
 - `/cancel_reservation` - Cancel an existing reservation
 
-## Contributing
-
-1. Fork the repository
-2. Create a new branch (`git checkout -b feature-branch`)
-3. Commit your changes ([git commit -am 'Add new feature'](http://_vscodecontentref_/0))
-4. Push to the branch (`git push origin feature-branch`)
-5. Create a new Pull Request
-
 ## License
 
-This project is licensed under the MIT License.
+This project is licensed under the [MIT License](LICENSE).

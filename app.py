@@ -15,6 +15,7 @@ PGUSER = os.getenv("PGUSER")
 PGDATABASE = os.getenv("PGDATABASE")
 PGPASSWORD = os.getenv("PGPASSWORD")
 LANGUAGE = os.getenv("LANGUAGE")
+REGISTER_ENABLED = os.getenv("REGISTER_ENABLED", "false")
 
 
 app = Flask(__name__)
@@ -231,7 +232,7 @@ def register():
         flash(strings['registration_successful_please_log_in'], 'success')
         return redirect(url_for('login'))
     
-    return render_template('register.html', strings=strings)
+    return render_template('register.html', strings=strings, register_enabled=REGISTER_ENABLED)
 
 
 

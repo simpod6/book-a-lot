@@ -32,6 +32,7 @@
         setTimeout(function () {
             let alerts = document.querySelectorAll('.alert');
             alerts.forEach(function (alert) {
+                if (alert.classList.contains('no-hide')) return; // Skip alerts with class 'no-hide'
                 alert.classList.remove('show'); // Hide the alert
                 setTimeout(() => alert.remove(), 150); // Remove from DOM after fade-out
             });
@@ -47,6 +48,9 @@
             <div class="col-md-6">                
                 <h1 class="text-center">{{ strings['book-a-lot'] }}</h1>
                 <h3 class="text-center">{{ strings['register'] }}</h3>                
+                
+                {% if register_enabled == 'true' %}
+
                 <form method="POST" action="{{ url_for('register') }}">
                     <div class="mb-3">
                         <label for="username" class="form-label">{{ strings['name'] }}</label>
@@ -62,6 +66,15 @@
                     </div>
                     <button type="submit" class="btn btn-primary w-100">{{ strings['register'] }}</button>
                 </form>
+
+                {% else %}
+
+                <div class="alert alert-warning no-hide" role="alert">                          
+                        {{ strings['registration_disabled'] }}                    
+                </div>
+
+                {% endif %}
+
                 <div class="text-center mt-3">
                     <p>{{ strings['already_have_an_account'] }} <a href="{{ url_for('login') }}">{{ strings['login_here'] }}</a>.</p>
                 </div>

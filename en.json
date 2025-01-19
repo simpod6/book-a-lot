@@ -30,6 +30,7 @@
     "confirm_your_password": "Confirm your password",
     "already_have_an_account": "Already have an account?",
     "login_here": "Login here",
+    "registration_disabled": "The registration of new user is currently disabled.",
 
     "### login.html ###": "----------------------------------------------------------",
     "login": "Login",

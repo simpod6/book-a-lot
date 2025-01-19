@@ -54,7 +54,7 @@
                 <form method="POST" action="{{ url_for('register') }}">
                     <div class="mb-3">
                         <label for="username" class="form-label">{{ strings['name'] }}</label>
-                        <input type="text" class="form-control" id="username" name="username" placeholder="{{ strings['enter_your_name'] }}" required>
+                        <input type="text" class="form-control" id="username" name="username" placeholder="{{ strings['enter_your_name'] }}" required oninput="this.value = this.value.trim();">
                     </div>
                     <div class="mb-3">
                         <label for="password" class="form-label">{{ strings['password'] }}</label>

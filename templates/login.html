@@ -47,7 +47,7 @@
         <form method="POST" action="{{ url_for('login') }}">
             <div class="mb-3">
                 <label for="username" class="form-label">{{ strings['name'] }}</label>
-                <input type="text" class="form-control" id="username" name="username" required>
+                <input type="text" class="form-control" id="username" name="username" required oninput="this.value = this.value.trim();">
             </div>
             <div class="mb-3">
                 <label for="password" class="form-label">{{ strings['password'] }}</label>

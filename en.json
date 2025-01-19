@@ -34,6 +34,9 @@
 
     "### login.html ###": "----------------------------------------------------------",
     "login": "Login",
+    "instructions": "How to install the mobile application",
+    "instructions_text_1": "Android: open the site with Chrome, tap the three-dot button in the top right corner and select the 'Add to Home screen' option",
+    "instructions_text_2": "iOS: open the site with Safari, tap the share button in the toolbar and select the 'Add to Home Screen' option",
 
     "### app.py ###": "----------------------------------------------------------",
     "login_successful": "Login successful!",    

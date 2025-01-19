@@ -34,7 +34,10 @@
     
     "### login.html ###": "----------------------------------------------------------",
     "login": "Accedi",
-
+    "instructions": "Come installare l'applicazione mobile",
+    "instructions_text_1": "Android: aprire il sito con Chrome, fare tap sul pulsante dei tre puntini posto nell’angolo in alto a destra e selezionare l’opzione 'Aggiungi a schermata Home'",
+    "instructions_text_2": "iOS: aprire il sito con Safari, fare tap sul pulsante di condivisione posto nella barra degli strumenti e selezionare l’opzione 'Aggiungi alla schermata Home'",    
+    
     "### app.py ###": "----------------------------------------------------------",
     "login_successful": "Accesso effettuato con successo!",
     "invalid_username_or_password": "Nome utente o password non validi!",

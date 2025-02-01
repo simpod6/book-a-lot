@@ -162,6 +162,64 @@ class AppTestCase(unittest.TestCase):
 
             self.assertEqual(reservation.start_time, start_time)
             self.assertEqual(reservation.end_time, end_time)
+    
+    def test_add_reservation_overlap_2(self):
+        
+        reservation_date = datetime.now().strftime('%Y-%m-%d')
+        reservation_time = '10:00'
+        reservation_time_2 = '09:30'
+        reservation_duration = '60'
+        
+        test_user_id =  self.create_test_user()
+        self.do_login()
+
+        self.add_reservation(test_user_id, reservation_date, reservation_time, reservation_duration)                
+        
+        response = self.add_reservation(test_user_id, reservation_date, reservation_time_2, reservation_duration, skipChecks=True)        
+        
+        self.assertEqual(response.status_code, 200)
+        self.assertIn(bytes(self.strings['reservation_overlaps_with_an_existing_one'],'utf-8'), response.data)
+        with app.app_context():
+            reservations = Reservation.query.filter_by(user_id=test_user_id)
+            self.assertEqual(reservations.count(), 1)
+
+            reservation = reservations.first()
+            self.assertIsNotNone(reservation)
+
+            start_time = datetime.strptime(f'{reservation_date} {reservation_time}', '%Y-%m-%d %H:%M')
+            end_time = start_time + timedelta(minutes=int(reservation_duration))
+
+            self.assertEqual(reservation.start_time, start_time)
+            self.assertEqual(reservation.end_time, end_time)
+    
+    def test_add_reservation_overlap_identical(self):
+        
+        reservation_date = datetime.now().strftime('%Y-%m-%d')
+        reservation_time = '9:30'
+        reservation_duration = '60'
+        
+        test_user_id =  self.create_test_user()
+        self.do_login()
+
+        self.add_reservation(test_user_id, reservation_date, reservation_time, reservation_duration)                
+        
+        response = self.add_reservation(test_user_id, reservation_date, reservation_time, reservation_duration, skipChecks=True)        
+        
+        self.assertEqual(response.status_code, 200)
+        self.assertIn(bytes(self.strings['reservation_overlaps_with_an_existing_one'],'utf-8'), response.data)
+        with app.app_context():
+            reservations = Reservation.query.filter_by(user_id=test_user_id)
+            self.assertEqual(reservations.count(), 1)
+
+            reservation = reservations.first()
+            self.assertIsNotNone(reservation)
+
+            start_time = datetime.strptime(f'{reservation_date} {reservation_time}', '%Y-%m-%d %H:%M')
+            end_time = start_time + timedelta(minutes=int(reservation_duration))
+
+            self.assertEqual(reservation.start_time, start_time)
+            self.assertEqual(reservation.end_time, end_time)
+
 
 
     def test_cancel_reservation(self):

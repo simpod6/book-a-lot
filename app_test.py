@@ -59,6 +59,14 @@ class AppTestCase(unittest.TestCase):
         self.create_test_user()
 
         self.do_login()
+    
+    def test_login_already_logged_in(self):
+        with self.app.session_transaction() as sess:
+            sess['username'] = 'testuser'
+        response = self.app.get('/login')
+        self.assertEqual(response.status_code, 302)
+        self.assertIn('/index', response.location)
+
 
     def test_successful_login_with_different_case_username(self):        
         self.create_test_user(username='testuser', password='password123')
@@ -86,6 +94,13 @@ class AppTestCase(unittest.TestCase):
         self.assertIn(bytes(self.strings['login_successful'],'utf-8'), response.data)
         with self.app.session_transaction() as sess:
             self.assertIn('username', sess)
+    
+    def do_logout(self):
+        response = self.app.get('/logout', follow_redirects=True)
+        self.assertEqual(response.status_code, 200)
+        self.assertIn(bytes(self.strings['you_have_been_logged_out'],'utf-8'), response.data)
+        with self.app.session_transaction() as sess:
+            self.assertNotIn('username', sess)
 
     def test_logout(self):
         with self.app.session_transaction() as sess:
@@ -264,6 +279,8 @@ class AppTestCase(unittest.TestCase):
         with app.app_context():
             reservation = Reservation.query.filter_by(user_id=test_user_id).first()
             self.assertIsNotNone(reservation)
+        
+        self.do_logout()
 
         with app.app_context():
             test_user_2_id = self.create_test_user(username='testuser2', password='password123')
@@ -314,6 +331,8 @@ class AppTestCase(unittest.TestCase):
 
         self.add_reservation(test_user_id, reservation_date, reservation_time, reservation_duration)        
 
+        self.do_logout()
+
         with app.app_context():
             test_user_2_id = self.create_test_user(username='testuser2', password='password123')
             self.do_login(username='testuser2', password='password123')
@@ -359,6 +378,8 @@ class AppTestCase(unittest.TestCase):
 
         self.add_reservation(test_user_id, reservation_date, reservation_time, reservation_duration)        
 
+        self.do_logout()
+
         with app.app_context():
             test_user_2_id = self.create_test_user(username='testuser2', password='password123')
             self.do_login(username='testuser2', password='password123')
@@ -390,6 +411,8 @@ class AppTestCase(unittest.TestCase):
             self.assertEqual(reservation_2.end_time, end_time_2)
 
             self.assertEqual(reservation_2.user_id, test_user_2_id)
+
+            self.do_logout()
 
             self.do_login()
 
@@ -417,6 +440,8 @@ class AppTestCase(unittest.TestCase):
 
         self.add_reservation(test_user_id, reservation_date, reservation_time, reservation_duration)        
 
+        self.do_logout()
+
         with app.app_context():
             test_user_2_id = self.create_test_user(username='testuser2', password='password123')
             self.do_login(username='testuser2', password='password123')
@@ -448,6 +473,8 @@ class AppTestCase(unittest.TestCase):
             self.assertEqual(reservation_2.end_time, end_time_2)
 
             self.assertEqual(reservation_2.user_id, test_user_2_id)
+
+            self.do_logout()
 
             self.do_login()
 
@@ -493,6 +520,8 @@ class AppTestCase(unittest.TestCase):
 
         self.add_reservation(test_user_id, reservation_date, reservation_time, reservation_duration)        
 
+        self.do_logout()
+
         with app.app_context():
             test_user_2_id = self.create_test_user(username='testuser2', password='password123')
             self.do_login(username='testuser2', password='password123')
@@ -532,6 +561,8 @@ class AppTestCase(unittest.TestCase):
         self.do_login()
 
         self.add_reservation(test_user_id, reservation_date, reservation_time, reservation_duration)        
+
+        self.do_logout()
 
         with app.app_context():
             test_user_2_id = self.create_test_user(username='testuser2', password='password123')
@@ -578,6 +609,8 @@ class AppTestCase(unittest.TestCase):
         self.do_login()
 
         self.add_reservation(test_user_id, reservation_date, reservation_time, reservation_duration)        
+
+        self.do_logout()
 
         with app.app_context():
             test_user_2_id = self.create_test_user(username='testuser2', password='password123')

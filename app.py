@@ -64,6 +64,9 @@ def home():
 def login():    
     strings = load_language()
 
+    if 'username' in session:
+        return redirect(url_for('index'))
+
     if request.method == 'POST':
         username = request.form.get('username')
         password = request.form.get('password')

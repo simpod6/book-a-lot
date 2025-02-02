@@ -96,14 +96,7 @@ def index():
         flash(strings['please_log_in_to_access_the_system'], 'danger')
         return redirect(url_for('login'))
     
-    # Delete past reservations older than 1 week
-    one_week_ago = datetime.now() - timedelta(weeks=1)
-    past_reservations = Reservation.query.filter(Reservation.end_time < one_week_ago).all()
-    for reservation in past_reservations:
-        db.session.delete(reservation)
-    db.session.commit()
-    
-     # Fetch all reservations for the calendar
+    # Fetch all reservations for the calendar
     reservations = Reservation.query.join(User).all()
 
     # Fetch reservations for the logged-in user (to cancel)
@@ -124,7 +117,9 @@ def get_reservations():
         flash(strings['you_must_be_logged_in_to_view_reservations'], 'danger')
         return redirect(url_for('login'))
     
-    reservations = Reservation.query.join(User).all()
+    
+    one_week_ago = datetime.now() - timedelta(weeks=1)
+    reservations = Reservation.query.join(User).filter(Reservation.end_time >= one_week_ago).all()
     return jsonify([
         {
             'title': res.user.username,
@@ -201,6 +196,34 @@ def cancel_reservation():
         flash(strings['reservation_not_found_or_not_authorized'], 'danger')
 
     return redirect(url_for('index'))
+
+@app.route('/stats')
+def stats():
+    strings = load_language()
+
+    if 'username' not in session:
+        flash(strings['please_log_in_to_access_the_system'], 'danger')
+        return redirect(url_for('login'))
+
+    # Fetch user statistics
+    users = User.query.all()
+    user_stats = []
+    for user in users:
+        total_reservations = Reservation.query.filter_by(user_id=user.id).count()
+        future_reservations = Reservation.query.filter(
+            Reservation.user_id == user.id,
+            Reservation.start_time > datetime.now()
+        ).count()
+        user_stats.append({
+            'username': user.username,
+            'total_reservations': total_reservations,
+            'future_reservations': future_reservations
+        })
+
+    # Fetch total number of reservations
+    total_reservations = Reservation.query.count()
+
+    return render_template('stats.html', user_stats=user_stats, total_reservations=total_reservations, strings=strings)
 
 @app.route('/register', methods=['GET', 'POST'])
 def register():    

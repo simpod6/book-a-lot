@@ -9,6 +9,7 @@ os.environ['FLASK_ENV'] = 'testing'
 from app import app, db, User, Reservation
 from datetime import datetime, timedelta
 import json
+from bs4 import BeautifulSoup as BS
 
 LANGUAGE = os.getenv("LANGUAGE")
 
@@ -517,6 +518,39 @@ class AppTestCase(unittest.TestCase):
 
         self.assertEqual(reservations[0]['end'], end_time_1.isoformat())
         self.assertEqual(reservations[1]['end'], end_time_2.isoformat())
+    
+    # tests for api/reservations: test that reservations older than 1 week are not returned
+    def test_reservations_api_old_reservations(self):
+        reservation_date = (datetime.now() - timedelta(weeks=2)).strftime('%Y-%m-%d')
+        reservation_time = '10:00'
+        reservation_duration = '60'
+
+        reservation_date_2 = (datetime.now() - timedelta(days=3)).strftime('%Y-%m-%d')
+    
+        
+        test_user_id =  self.create_test_user()
+        self.do_login()
+
+        self.add_reservation(test_user_id, reservation_date, reservation_time, reservation_duration)        
+
+        with app.app_context():
+            test_user_2_id = self.create_test_user(username='testuser2', password='password123')
+            self.do_login(username='testuser2', password='password123')
+
+            self.add_reservation(test_user_2_id, reservation_date_2, reservation_time, reservation_duration)        
+
+        response = self.app.get('/api/reservations', follow_redirects=True)
+        self.assertEqual(response.status_code, 200)
+        # parse the json response
+        reservations = response.get_json()
+        self.assertEqual(len(reservations), 1)
+        self.assertEqual(reservations[0]['title'], 'testuser2')
+
+        start_time_2 = datetime.strptime(f"{reservation_date_2} {reservation_time}", "%Y-%m-%d %H:%M")
+        end_time_2 = start_time_2 + timedelta(minutes=int(reservation_duration))
+
+        self.assertEqual(reservations[0]['start'], start_time_2.isoformat())
+        self.assertEqual(reservations[0]['end'], end_time_2.isoformat())
         
     def test_reservations_api_not_logged_in(self):
         response = self.app.get('/api/reservations', follow_redirects=True)
@@ -531,6 +565,46 @@ class AppTestCase(unittest.TestCase):
         self.assertEqual(response.status_code, 200)
         self.assertIn(b'[]', response.data)
     
+    # test /stats page
+    def test_stats_page(self):
+        reservation_date = datetime.now().strftime('%Y-%m-%d')
+        reservation_time = '10:00'
+        reservation_duration = '60'
+
+        reservation_date_2 = (datetime.now() + timedelta(days=1)).strftime('%Y-%m-%d')
+    
+        
+        test_user_id =  self.create_test_user()
+        self.do_login()
+
+        self.add_reservation(test_user_id, reservation_date, reservation_time, reservation_duration)        
+
+        with app.app_context():
+            test_user_2_id = self.create_test_user(username='testuser2', password='password123')
+            self.do_login(username='testuser2', password='password123')
+
+            self.add_reservation(test_user_2_id, reservation_date_2, reservation_time, reservation_duration)        
+
+        response = self.app.get('/stats', follow_redirects=True)
+        self.assertEqual(response.status_code, 200)
+        self.assertIn(b'Total Reservations: 2', response.data)
+        soup = BS(response.data, 'html.parser')
+        table = soup.find('table')
+        self.assertIsNotNone(table)
+        row1 = table.find_all('tr')[1]
+        self.assertEqual(row1.find_all('td')[0].text, 'testuser')
+        self.assertEqual(row1.find_all('td')[1].text, '0')
+        self.assertEqual(row1.find_all('td')[2].text, '1')
+        row2 = table.find_all('tr')[2]
+        self.assertEqual(row2.find_all('td')[0].text, 'testuser2')
+        self.assertEqual(row2.find_all('td')[1].text, '1')
+        self.assertEqual(row2.find_all('td')[2].text, '1')
+    
+    def test_stats_page_not_logged_in(self):
+        response = self.app.get('/stats', follow_redirects=True)
+        self.assertEqual(response.status_code, 200)
+        self.assertIn(bytes(self.strings['please_log_in_to_access_the_system'],'utf-8'), response.data)
+
     def test_register_page_loads(self):
         response = self.app.get('/register')
         self.assertEqual(response.status_code, 200)
@@ -581,37 +655,6 @@ class AppTestCase(unittest.TestCase):
         response = self.app.post('/register', data=dict(username='testuser@abc.com', password='password123', confirm_password='password123'), follow_redirects=True)
         self.assertEqual(response.status_code, 200)
         self.assertIn(bytes(self.strings['username_must_contain_only_alphanumeric_characters'],'utf-8'), response.data)
-
-    def test_reservations_older_than_1_week_are_deleted(self):
-
-        reservation_date = datetime.now().strftime('%Y-%m-%d')
-        reservation_time = '10:00'
-        reservation_time_2 = '10:30'
-        reservation_duration = '60'
-
-        reservation_date_past = (datetime.now() - timedelta(days=8)).strftime('%Y-%m-%d')
-        
-        test_user_id =  self.create_test_user()
-        self.do_login()
-
-        self.add_reservation(test_user_id, reservation_date, reservation_time, reservation_duration)                
-        
-        response = self.add_reservation(test_user_id, reservation_date_past, reservation_time_2, reservation_duration, skipChecks=True)        
-        
-        self.assertEqual(response.status_code, 200)
-        with app.app_context():
-            reservations = Reservation.query.filter_by(user_id=test_user_id)
-            self.assertEqual(reservations.count(), 1)
-
-            reservation = reservations.first()
-            self.assertIsNotNone(reservation)
-
-            start_time = datetime.strptime(f'{reservation_date} {reservation_time}', '%Y-%m-%d %H:%M')
-            end_time = start_time + timedelta(minutes=int(reservation_duration))
-
-            self.assertEqual(reservation.start_time, start_time)
-            self.assertEqual(reservation.end_time, end_time)
-
 
 if __name__ == '__main__':
     unittest.main()

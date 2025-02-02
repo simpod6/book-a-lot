@@ -7,7 +7,7 @@ This is a web-based reservation system built with Flask. It allows users to crea
 - User registration and login
 - Create reservations
 - Cancel reservations
-- Flash messages for user feedback
+- Statistics page
 
 ## TODO
 

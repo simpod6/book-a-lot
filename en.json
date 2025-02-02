@@ -1,5 +1,7 @@
-{
+{    
     "language": "en",
+    "version": "v1.1",
+
     "### index.html ###": "----------------------------------------------------------",
     "book-a-lot": "book-a-lot",
     "parking_space_reservation": "Parking Space Reservation",
@@ -53,5 +55,11 @@
     "passwords_do_not_match": "Passwords do not match!",
     "username_must_contain_only_alphanumeric_characters": "Username must contain only alphanumeric characters!",
     "username_already_exists": "Username already exists!",
-    "registration_successful_please_log_in": "Registration successful! Please log in."
+    "registration_successful_please_log_in": "Registration successful! Please log in.",
+
+    "### stats.html ###": "----------------------------------------------------------",
+    "statistics": "Statistics",
+    "total_reservations": "Total Reservations",
+    "future": "Future",
+    "total": "Total"
 }

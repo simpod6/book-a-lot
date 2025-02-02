@@ -1,5 +1,7 @@
 {
     "language": "it",
+    "version": "v1.1",
+
     "### index.html ###": "----------------------------------------------------------",
     "book-a-lot": "book-a-lot",
     "parking_space_reservation": "Prenotazione Parcheggio",
@@ -53,5 +55,11 @@
     "passwords_do_not_match": "Le password non corrispondono!",
     "username_must_contain_only_alphanumeric_characters": "Il nome utente deve contenere solo caratteri alfanumerici!",
     "username_already_exists": "Il nome utente esiste già!",
-    "registration_successful_please_log_in": "Registrazione avvenuta con successo! Per favore accedi."
+    "registration_successful_please_log_in": "Registrazione avvenuta con successo! Per favore accedi.",
+
+    "### stats.html ###": "----------------------------------------------------------",
+    "statistics": "Statistiche",
+    "total_reservations": "Prenotazioni Totali",
+    "future": "Future",
+    "total": "Totali"
 }

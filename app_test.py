@@ -52,7 +52,7 @@ class AppTestCase(unittest.TestCase):
     def test_login_page_loads(self):
         response = self.app.get('/login')
         self.assertEqual(response.status_code, 200)
-        self.assertIn(b'Login', response.data)
+        self.assertIn(bytes(self.strings['login'], 'utf-8'), response.data)
 
     def test_successful_login(self):
         # Add a test user to the database
@@ -587,7 +587,7 @@ class AppTestCase(unittest.TestCase):
 
         response = self.app.get('/stats', follow_redirects=True)
         self.assertEqual(response.status_code, 200)
-        self.assertIn(b'Total Reservations: 2', response.data)
+        self.assertIn(bytes(self.strings['total_reservations'],'utf-8'), response.data)
         soup = BS(response.data, 'html.parser')
         table = soup.find('table')
         self.assertIsNotNone(table)
@@ -608,7 +608,7 @@ class AppTestCase(unittest.TestCase):
     def test_register_page_loads(self):
         response = self.app.get('/register')
         self.assertEqual(response.status_code, 200)
-        self.assertIn(b'Register', response.data)
+        self.assertIn(bytes(self.strings['register'],'utf-8'), response.data)
     
     def test_register_user(self):
         response = self.app.post('/register', data=dict(username='testuser', password='password123', confirm_password='password123'), follow_redirects=True)

@@ -1,6 +1,6 @@
 {
     "language": "it",
-    "version": "v1.1",
+    "version": "v1.2",
 
     "### index.html ###": "----------------------------------------------------------",
     "book-a-lot": "book-a-lot",
@@ -16,6 +16,9 @@
     "2_hours": "2 ore",
     "2_hours_30_minutes": "2 ore 30 minuti",
     "3_hours": "3 ore",
+    "4_hours": "4 ore",
+    "5_hours": "5 ore",
+    "6_hours": "6 ore",
     "reserve": "Prenota",
     "cancel_a_reservation": "Annulla una Prenotazione",
     "select_reservation_to_cancel": "Seleziona Prenotazione da Annullare",

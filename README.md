@@ -56,8 +56,6 @@ All done.
 
 1. Set the desired environment variables. Check [.env-sample](.env-sample)
 
-
-
 2. Run the application:
 
     ```sh

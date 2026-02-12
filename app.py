@@ -222,6 +222,8 @@ def stats():
             'total_reservations': total_reservations,
             'future_reservations': future_reservations
         })
+    
+    user_stats.sort(key=lambda x: x['total_reservations'], reverse=True)
 
     # Fetch total number of reservations
     total_reservations = Reservation.query.count()
